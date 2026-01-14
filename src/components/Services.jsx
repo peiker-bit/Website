@@ -7,32 +7,38 @@ const services = [
   {
     icon: <Calculator size={32} />,
     title: 'Steuererklärung',
-    desc: 'Professionelle Erstellung Ihrer Einkommensteuererklärung für Arbeitnehmer, Rentner und Vermieter.'
+    desc: 'Professionelle Erstellung Ihrer Einkommensteuererklärung für Arbeitnehmer, Rentner und Vermieter.',
+    color: 'var(--color-accent)' // Blue
   },
   {
     icon: <Briefcase size={32} />,
     title: 'Jahresabschluss',
-    desc: 'Erstellung von Jahresabschlüssen und Gewinnermittlungen nach Handels- und Steuerrecht.'
+    desc: 'Erstellung von Jahresabschlüssen und Gewinnermittlungen nach Handels- und Steuerrecht.',
+    color: 'var(--color-indigo)' // Indigo
   },
   {
     icon: <TrendingUp size={32} />,
     title: 'Finanzbuchhaltung',
-    desc: 'Digitale Buchführung mit DATEV Unternehmen online – effizient und papierlos.'
+    desc: 'Digitale Buchführung mit DATEV Unternehmen online – effizient und papierlos.',
+    color: 'var(--color-secondary)' // Teal
   },
   {
     icon: <Users size={32} />,
     title: 'Lohnbuchhaltung',
-    desc: 'Zuverlässige Lohn- und Gehaltsabrechnungen inkl. aller Meldungen.'
+    desc: 'Zuverlässige Lohn- und Gehaltsabrechnungen inkl. aller Meldungen.',
+    color: 'var(--color-emerald)' // Green
   },
   {
     icon: <PieChart size={32} />,
     title: 'Betriebswirtschaft',
-    desc: 'Analyse Ihrer Zahlen und Beratung zur Unternehmenssteuerung und Liquidität.'
+    desc: 'Analyse Ihrer Zahlen und Beratung zur Unternehmenssteuerung und Liquidität.',
+    color: 'var(--color-gold)' // Gold
   },
   {
     icon: <FileText size={32} />,
     title: 'Gründungsberatung',
-    desc: 'Starten Sie erfolgreich in die Selbstständigkeit mit unserem Gründer-Coaching.'
+    desc: 'Starten Sie erfolgreich in die Selbstständigkeit mit unserem Gründer-Coaching.',
+    color: 'var(--color-rose)' // Red/Pink
   }
 ];
 
@@ -76,12 +82,13 @@ const Services = () => {
               key={index}
               variants={item}
               className="service-card"
+              style={{ borderTopColor: service.color }}
               whileHover={{
                 y: -10,
                 boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
               }}
             >
-              <div className="service-icon">{service.icon}</div>
+              <div className="service-icon" style={{ color: service.color }}>{service.icon}</div>
               <h3>{service.title}</h3>
               <p>{service.desc}</p>
             </motion.div>
@@ -126,6 +133,7 @@ const Services = () => {
           border: 1px solid transparent;
           position: relative;
           overflow: hidden;
+          border-top: 4px solid var(--color-accent);
         }
 
         .service-card:hover {
@@ -136,7 +144,6 @@ const Services = () => {
           width: 64px;
           height: 64px;
           background: var(--color-bg-light);
-          color: var(--color-primary);
           display: flex;
           align-items: center;
           justify-content: center;

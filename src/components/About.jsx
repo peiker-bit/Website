@@ -62,7 +62,7 @@ const About = () => {
                                 whileInView={{ scale: 1, opacity: 1, rotate: -5, x: 0, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5, delay: 0.2 }}
-                                className="stack-card bg-accent text-white offset-card"
+                                className="stack-card bg-secondary text-white offset-card"
                             >
                                 <h3>100%</h3>
                                 <p>Digital</p>
@@ -177,6 +177,7 @@ const About = () => {
 
         .bg-primary { background: var(--color-primary); }
         .bg-accent { background: var(--color-accent); }
+        .bg-secondary { background: var(--color-secondary); }
 
         .offset-card {
             position: absolute;

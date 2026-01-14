@@ -1,47 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, Mail } from 'lucide-react';
+import logo from '../assets/logo.png';
 
 const Header = () => {
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    return (
-        <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
-            <div className="container header-container">
-                <div className="logo">
-                    <span className="logo-icon">P</span>
-                    <div className="logo-text">
-                        <span className="name">Peiker</span>
-                        <span className="sub">Steuerberatung</span>
-                    </div>
-                </div>
+  return (
+    <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
+      <div className="container header-container">
+        <div className="logo">
+          <img src={logo} alt="Peiker Steuerberater" className="logo-img" />
+        </div>
 
-                <nav className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
-                    <a href="#services" onClick={() => setIsMenuOpen(false)}>Leistungen</a>
-                    <a href="#about" onClick={() => setIsMenuOpen(false)}>Kanzlei</a>
-                    <a href="#contact" onClick={() => setIsMenuOpen(false)}>Kontakt</a>
-                    <a href="tel:+49123456789" className="contact-link">
-                        <Phone size={16} /> 0123 / 456 789
-                    </a>
-                </nav>
+        <nav className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
+          <a href="#services" onClick={() => setIsMenuOpen(false)}>Leistungen</a>
+          <a href="#about" onClick={() => setIsMenuOpen(false)}>Kanzlei</a>
+          <a href="#contact" onClick={() => setIsMenuOpen(false)}>Kontakt</a>
+          <a href="tel:+49123456789" className="contact-link">
+            <Phone size={16} /> 0123 / 456 789
+          </a>
+        </nav>
 
-                <button
-                    className="mobile-menu-btn"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                    {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
-            </div>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
 
-            <style>{`
+      <style>{`
         .header {
           position: fixed;
           top: 0;
@@ -66,42 +63,16 @@ const Header = () => {
           justify-content: space-between;
         }
 
+
         .logo {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          font-family: var(--font-heading);
         }
 
-        .logo-icon {
-          width: 40px;
-          height: 40px;
-          background: var(--color-primary);
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 1.25rem;
-          border-radius: 8px;
-        }
-
-        .logo-text {
-          display: flex;
-          flex-direction: column;
-          line-height: 1.1;
-        }
-
-        .logo-text .name {
-          font-weight: 700;
-          color: var(--color-primary);
-          font-size: 1.25rem;
-        }
-
-        .logo-text .sub {
-          font-size: 0.875rem;
-          color: var(--color-text-muted);
-          font-weight: 500;
+        .logo-img {
+            height: 100px;
+            width: auto;
+            object-fit: contain;
         }
 
         .nav-links {
@@ -174,8 +145,8 @@ const Header = () => {
           }
         }
       `}</style>
-        </header>
-    );
+    </header>
+  );
 };
 
 export default Header;

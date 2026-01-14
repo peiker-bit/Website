@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 
 const Footer = () => {
     return (
@@ -6,9 +7,8 @@ const Footer = () => {
             <div className="container">
                 <div className="footer-top">
                     <div className="footer-brand">
-                        <div className="logo-text">
-                            <span className="name">Peiker</span>
-                            <span className="sub">Steuerberatung</span>
+                        <div className="footer-logo">
+                            <img src={logo} alt="Peiker Steuerberater" className="logo-img-footer" />
                         </div>
                         <p>
                             Moderne Steuerberatung für eine<br />erfolgreiche Zukunft.
@@ -47,6 +47,7 @@ const Footer = () => {
             <style>{`
         .footer {
           background-color: var(--color-primary);
+          background-image: radial-gradient(circle at 50% 0%, rgba(13, 148, 136, 0.15) 0%, transparent 70%);
           color: var(--color-text-light);
           padding: 5rem 0 2rem;
         }
@@ -58,18 +59,17 @@ const Footer = () => {
           margin-bottom: 4rem;
         }
 
-        .footer-brand .name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: block;
-        }
-        
-        .footer-brand .sub {
-            font-size: 0.9rem;
-            color: rgba(255,255,255,0.7);
-            font-weight: 500;
+        .logo-img-footer {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            opacity: 1;
             margin-bottom: 1rem;
-            display: block;
+            margin-left: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .footer-brand p {
