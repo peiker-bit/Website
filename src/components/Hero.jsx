@@ -107,8 +107,8 @@ const Hero = () => {
                                 transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
                             >
                                 <circle cx="250" cy="250" r="200" stroke="var(--color-border)" strokeWidth="1" fill="none" strokeDasharray="4 4" opacity="0.6" />
-                                {[0, 60, 120, 180, 240, 300].map((deg, i) => (
-                                    <circle key={i} cx={250 + 200 * Math.cos(deg * Math.PI / 180)} cy={250 + 200 * Math.sin(deg * Math.PI / 180)} r="5" fill={['var(--color-accent)', 'var(--color-indigo)', 'var(--color-secondary)', 'var(--color-emerald)', 'var(--color-gold)', 'var(--color-rose)'][i]} opacity="0.9" />
+                                {[0, 90, 180, 270].map((deg, i) => (
+                                    <circle key={i} cx={250 + 200 * Math.cos(deg * Math.PI / 180)} cy={250 + 200 * Math.sin(deg * Math.PI / 180)} r="4" fill="var(--color-text-muted)" opacity="0.5" />
                                 ))}
                             </motion.g>
 
@@ -125,9 +125,9 @@ const Hero = () => {
                             >
                                 <circle cx="250" cy="250" r="160" stroke="var(--color-primary)" strokeWidth="2" fill="none" strokeDasharray="80 20" opacity="0.1" />
                                 {/* Segments representing data blocks */}
-                                <circle cx="250" cy="250" r="160" stroke="var(--color-indigo)" strokeWidth="3" fill="none" strokeDasharray="100 905" strokeLinecap="round" />
-                                <circle cx="250" cy="250" r="160" stroke="var(--color-secondary)" strokeWidth="3" fill="none" strokeDasharray="60 945" strokeDashoffset="-200" strokeLinecap="round" />
-                                <circle cx="250" cy="250" r="160" stroke="var(--color-rose)" strokeWidth="3" fill="none" strokeDasharray="40 965" strokeDashoffset="-500" strokeLinecap="round" />
+                                <circle cx="250" cy="250" r="160" stroke="var(--color-primary)" strokeWidth="3" fill="none" strokeDasharray="100 905" strokeLinecap="round" />
+                                <circle cx="250" cy="250" r="160" stroke="var(--color-accent)" strokeWidth="3" fill="none" strokeDasharray="60 945" strokeDashoffset="-200" strokeLinecap="round" />
+                                <circle cx="250" cy="250" r="160" stroke="var(--color-primary)" strokeWidth="3" fill="none" strokeDasharray="40 965" strokeDashoffset="-500" strokeLinecap="round" />
                             </motion.g>
 
                             {/* Inner Ring - Rapid Data Flow */}
@@ -137,10 +137,10 @@ const Hero = () => {
                                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                             >
                                 <circle cx="250" cy="250" r="120" stroke="var(--color-border)" strokeWidth="1" fill="none" />
-                                <path d="M250,130 L250,140" stroke="var(--color-emerald)" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M250,360 L250,370" stroke="var(--color-gold)" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M250,130 L250,140" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M250,360 L250,370" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
                                 <path d="M130,250 L140,250" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M360,250 L370,250" stroke="var(--color-indigo)" strokeWidth="2" strokeLinecap="round" />
+                                <path d="M360,250 L370,250" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" />
                             </motion.g>
 
                             {/* Center Icon - Dynamic Pulse */}
@@ -171,7 +171,7 @@ const Hero = () => {
                                 y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
                             }}
                         >
-                            <div className="card-icon icon-optimize" style={{ color: 'var(--color-emerald)', background: '#ECFDF5' }}>
+                            <div className="card-icon icon-optimize" style={{ color: 'var(--color-accent)', background: '#F0F9FF' }}>
                                 <TrendingDown size={20} />
                             </div>
                             <div className="card-content">
@@ -189,7 +189,7 @@ const Hero = () => {
                                 y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }
                             }}
                         >
-                            <div className="card-icon icon-secure" style={{ color: 'var(--color-indigo)', background: '#EEF2FF' }}>
+                            <div className="card-icon icon-secure" style={{ color: 'var(--color-accent)', background: '#F0F9FF' }}>
                                 <Clock size={20} />
                             </div>
                             <div className="card-content">
