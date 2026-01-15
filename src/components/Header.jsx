@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Phone, Mail } from 'lucide-react';
+import { Menu, X, Phone } from 'lucide-react';
 import logo from '../assets/logo.png';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,17 +17,37 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleNavClick = (e, targetId) => {
+    e.preventDefault();
+    setIsMenuOpen(false);
+
+    if (location.pathname !== '/') {
+      navigate('/');
+      // Wait for navigation to complete then scroll
+      setTimeout(() => {
+        const element = document.getElementById(targetId);
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container header-container">
-        <div className="logo">
+        <Link to="/" className="logo">
           <img src={logo} alt="Peiker Steuerberater" className="logo-img" />
-        </div>
+        </Link>
 
         <nav className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
-          <a href="#services" onClick={() => setIsMenuOpen(false)}>Leistungen</a>
-          <a href="#about" onClick={() => setIsMenuOpen(false)}>Kanzlei</a>
-          <a href="#contact" onClick={() => setIsMenuOpen(false)}>Kontakt</a>
+          <a href="#services" onClick={(e) => handleNavClick(e, 'services')}>Leistungen</a>
+          <Link to="/lohn" onClick={() => setIsMenuOpen(false)}>Lohn</Link>
+          <a href="#about" onClick={(e) => handleNavClick(e, 'about')}>Kanzlei</a>
+          <a href="#contact" onClick={(e) => handleNavClick(e, 'contact')}>Kontakt</a>
           <a href="tel:+49123456789" className="contact-link">
             <Phone size={16} /> 0123 / 456 789
           </a>

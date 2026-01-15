@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
 
 const Footer = () => {
@@ -8,7 +9,9 @@ const Footer = () => {
                 <div className="footer-top">
                     <div className="footer-brand">
                         <div className="footer-logo">
-                            <img src={logo} alt="Peiker Steuerberater" className="logo-img-footer" />
+                            <Link to="/">
+                                <img src={logo} alt="Peiker Steuerberater" className="logo-img-footer" />
+                            </Link>
                         </div>
                         <p>
                             Moderne Steuerberatung für eine<br />erfolgreiche Zukunft.
