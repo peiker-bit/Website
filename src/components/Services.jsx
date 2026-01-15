@@ -91,7 +91,7 @@ const Services = () => {
 
       <style>{`
         .bg-light {
-          background-color: var(--color-bg-light);
+          background-color: var(--color-bg-subtle);
         }
 
         .section-header {
@@ -102,69 +102,74 @@ const Services = () => {
         }
 
         .section-title {
-          font-size: 2.5rem;
+          font-size: var(--text-4xl);
           margin-bottom: 1rem;
         }
 
         .section-subtitle {
           color: var(--color-text-muted);
           font-size: 1.125rem;
+          line-height: 1.6;
         }
 
         .services-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
           gap: 2rem;
         }
 
         .service-card {
           background: white;
           padding: 2.5rem;
-          border-radius: var(--radius-lg);
+          border-radius: var(--radius-xl);
           box-shadow: var(--shadow-sm);
-          transition: all 0.3s ease;
-          border: 1px solid transparent; /* Replaced border-top with subtle full border on hover */
+          transition: all var(--transition-normal);
+          border: 1px solid var(--color-border);
           position: relative;
           overflow: hidden;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
         }
 
         .service-card:hover {
-          border-color: var(--color-accent); /* Blue glow on hover */
+          border-color: var(--color-accent-light);
+          transform: translateY(-5px);
+          box-shadow: var(--shadow-xl);
         }
 
         .service-icon {
-          width: 64px;
-          height: 64px;
-          background: #F0F9FF; /* Light blue background by default */
-          color: var(--color-accent);
+          width: 56px;
+          height: 56px;
+          background: var(--color-bg-subtle);
+          color: var(--color-primary);
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: var(--radius-md);
+          border-radius: var(--radius-lg);
           margin-bottom: 1.5rem;
-          transition: all 0.3s ease;
+          transition: all var(--transition-normal);
         }
 
         .service-card:hover .service-icon {
-            background: var(--color-accent);
-            color: white;
-            transform: scale(1.1); /* Slight pop for the icon */
-        }
-
-        .service-card:hover .service-icon {
-          background: var(--color-primary);
+          background: var(--color-accent);
           color: white;
+          transform: rotate(-5deg) scale(1.1);
+          box-shadow: var(--shadow-glow);
         }
 
         .service-card h3 {
           margin-bottom: 1rem;
           font-size: 1.25rem;
+          font-weight: 700;
         }
 
         .service-card p {
           color: var(--color-text-muted);
-          font-size: 0.95rem;
+          font-size: 1rem;
           line-height: 1.6;
+          flex-grow: 1;
         }
       `}</style>
     </section>

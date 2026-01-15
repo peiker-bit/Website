@@ -80,14 +80,14 @@ const Contact = () => {
         }
 
         .contact-info h2 {
-          font-size: 2.5rem;
+          font-size: var(--text-4xl);
           margin-bottom: 1rem;
         }
 
         .contact-info p {
           color: var(--color-text-muted);
           margin-bottom: 3rem;
-          font-size: 1.1rem;
+          font-size: 1.125rem;
         }
 
         .info-cards {
@@ -102,38 +102,53 @@ const Contact = () => {
           gap: 1.5rem;
           background: white;
           padding: 1.5rem;
-          border-radius: var(--radius-md);
+          border-radius: var(--radius-lg);
           box-shadow: var(--shadow-sm);
-          /* cursor: pointer; removed to avoid confusion if not clickable */
+          border: 1px solid var(--color-border);
+          transition: all var(--transition-normal);
+        }
+        
+        .info-card:hover {
+            border-color: var(--color-accent-light);
+            box-shadow: var(--shadow-md);
+            transform: translateX(10px);
         }
 
         .icon-box {
-          width: 50px;
-          height: 50px;
-          background: var(--color-bg-light);
+          width: 56px;
+          height: 56px;
+          background: var(--color-bg-subtle);
           color: var(--color-primary);
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 50%;
+          border-radius: var(--radius-full);
+          transition: all var(--transition-normal);
+        }
+        
+        .info-card:hover .icon-box {
+            background: var(--color-accent);
+            color: white;
         }
 
         .info-card h3 {
-          font-size: 1rem;
+          font-size: 1.1rem;
           margin-bottom: 0.25rem;
+          font-weight: 700;
         }
 
         .info-card p {
           margin: 0;
-          font-size: 0.95rem;
+          font-size: 1rem;
           color: var(--color-text-main);
         }
 
         .contact-form-container {
           background: white;
           padding: 3rem;
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-lg);
+          border-radius: var(--radius-xl);
+          box-shadow: var(--shadow-xl);
+          border: 1px solid var(--col-border);
         }
 
         .form-group {
@@ -143,26 +158,28 @@ const Contact = () => {
         .form-group label {
           display: block;
           margin-bottom: 0.5rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--color-primary);
         }
 
         .form-group input,
         .form-group textarea {
           width: 100%;
-          padding: 0.875rem;
+          padding: 1rem;
           border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
+          border-radius: var(--radius-lg);
           font-family: var(--font-body);
           font-size: 1rem;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          transition: all var(--transition-fast);
+          background: var(--color-bg-subtle);
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
           outline: none;
           border-color: var(--color-accent);
-          box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.1);
+          box-shadow: 0 0 0 3px var(--color-accent-light);
+          background: white;
         }
 
         .full-width {

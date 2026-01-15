@@ -50,9 +50,10 @@ const Footer = () => {
             <style>{`
         .footer {
           background-color: var(--color-primary);
-          background-image: radial-gradient(circle at 50% 0%, rgba(13, 148, 136, 0.15) 0%, transparent 70%);
+          background-image: radial-gradient(circle at 50% 0%, rgba(20, 184, 166, 0.15) 0%, transparent 70%);
           color: var(--color-text-light);
           padding: 5rem 0 2rem;
+          border-top: 5px solid var(--color-accent);
         }
 
         .footer-top {
@@ -68,38 +69,45 @@ const Footer = () => {
             object-fit: contain;
             background: white;
             padding: 10px 15px;
-            border-radius: 8px;
+            border-radius: var(--radius-lg);
             opacity: 1;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             margin-left: 0;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
         .footer-brand p {
-            color: rgba(255,255,255,0.6);
+            color: var(--color-text-muted);
+            color: rgba(248, 250, 252, 0.7);
             line-height: 1.6;
+            font-size: 1.05rem;
         }
 
         .footer-links {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .footer-links h4 {
             color: white;
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
+            margin-bottom: 1.25rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .footer-links a, .footer-links span {
-            color: rgba(255,255,255,0.6);
+            color: rgba(248, 250, 252, 0.6);
             font-size: 0.95rem;
-            transition: color 0.2s;
+            transition: color var(--transition-fast);
+            text-decoration: none;
         }
 
         .footer-links a:hover {
             color: var(--color-accent);
+            transform: translateX(2px);
+            display: inline-block;
         }
 
         .footer-bottom {
@@ -114,6 +122,18 @@ const Footer = () => {
             .footer-top {
                 grid-template-columns: 1fr;
                 gap: 3rem;
+            }
+            
+            .footer-brand {
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .footer-links {
+                text-align: center;
+                align-items: center;
             }
         }
       `}</style>

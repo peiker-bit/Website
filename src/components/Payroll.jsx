@@ -146,9 +146,23 @@ const Payroll = () => {
             {/* Styles specific to Payroll page */}
             <style>{`
         .payroll-hero {
-            padding-top: 8rem;
-            padding-bottom: 4rem;
-            background: linear-gradient(135deg, var(--color-bg-light) 0%, #e2e8f0 100%);
+            padding-top: 10rem;
+            padding-bottom: 6rem;
+            background: var(--gradient-hero);
+            position: relative;
+        }
+        
+        .payroll-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.4;
+            pointer-events: none;
         }
         
         .subheadline {
@@ -160,8 +174,10 @@ const Payroll = () => {
 
         .hero-text {
             max-width: 800px;
-            margin: 0 auto 2rem;
+            margin: 0 auto 2.5rem;
             color: var(--color-text-muted);
+            font-size: 1.125rem;
+            line-height: 1.7;
         }
 
         .hero-actions {
@@ -173,7 +189,7 @@ const Payroll = () => {
 
         .benefits-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-top: 3rem;
         }
@@ -183,40 +199,57 @@ const Payroll = () => {
             align-items: center;
             gap: 1rem;
             padding: 1.5rem;
-            background: var(--color-bg-light);
-            border-radius: var(--radius-md);
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
             box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--color-accent-light);
         }
 
         .process-steps {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
             margin-top: 3rem;
         }
 
         .step-card {
             background: white;
-            padding: 2rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
+            padding: 2.5rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--color-border);
             position: relative;
             overflow: hidden;
+            transition: all var(--transition-normal);
+        }
+        
+        .step-card:hover {
+             box-shadow: var(--shadow-xl);
+             transform: translateY(-5px);
         }
 
         .step-number {
-            font-size: 4rem;
-            font-weight: 700;
+            font-size: 5rem;
+            font-weight: 800;
             color: var(--color-accent);
             opacity: 0.1;
             position: absolute;
             top: -10px;
             right: 10px;
+            line-height: 1;
         }
 
         .step-card h3 {
             margin-bottom: 1rem;
             color: var(--color-primary);
+            font-weight: 700;
         }
 
         .channels-grid {
@@ -228,20 +261,28 @@ const Payroll = () => {
 
         .channel-card {
             text-align: center;
-            padding: 2rem;
+            padding: 2.5rem;
             background: white;
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius-xl);
             box-shadow: var(--shadow-md);
-            transition: transform 0.3s ease;
+            transition: transform var(--transition-normal);
+            border: 1px solid var(--color-border);
         }
 
         .channel-card:hover {
             transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-secondary-light);
         }
 
         .channel-icon {
             color: var(--color-secondary);
             margin-bottom: 1.5rem;
+            background: #e0e7ff;
+            padding: 10px;
+            border-radius: 50%;
+            width: 64px;
+            height: 64px;
         }
 
         .audience-list {
@@ -256,9 +297,10 @@ const Payroll = () => {
             background: rgba(255, 255, 255, 0.1);
             color: white;
             padding: 0.75rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 500;
+            border-radius: var(--radius-full);
+            font-weight: 600;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
         }
 
         .faq-grid {
@@ -267,17 +309,26 @@ const Payroll = () => {
             gap: 2rem;
             margin-top: 3rem;
         }
+        
+        .faq-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+        }
 
         .faq-item h4 {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             font-size: 1.1rem;
+            color: var(--color-primary);
+            font-weight: 600;
         }
 
         .section-title {
-            font-size: 2rem;
+            font-size: var(--text-4xl);
             margin-bottom: 1rem;
             color: var(--color-primary);
         }
@@ -286,6 +337,7 @@ const Payroll = () => {
             max-width: 700px;
             margin: 0 auto 3rem;
             color: var(--color-text-muted);
+            font-size: 1.125rem;
         }
 
         .text-light {
@@ -301,11 +353,12 @@ const Payroll = () => {
         }
         
         .bg-light {
-            background-color: var(--color-bg-light);
+            background-color: var(--color-bg-subtle);
         }
         
         .bg-primary {
             background-color: var(--color-primary);
+            background-image: var(--gradient-primary);
         }
       `}</style>
         </div>

@@ -217,23 +217,30 @@ const Hero = () => {
           left: 0;
           width: 100%;
           height: 100%;
-          background-color: #F8FAFC;
-          background-image: radial-gradient(#CCD5E0 1px, transparent 1px), linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);
-          background-size: 24px 24px, 100% 100%;
-          background-position: 0 0, 0 0;
+          background: var(--gradient-hero);
           z-index: -1;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.4;
         }
 
         .hero-container {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 4rem;
+          gap: var(--space-12);
           align-items: center;
           position: relative; 
           z-index: 1; 
-          max-width: 1200px;
+          max-width: var(--container-width);
           margin: 0 auto;
-          padding: 0 1.5rem;
+          padding: 0 var(--container-padding);
         }
 
         .badge {
@@ -242,10 +249,10 @@ const Hero = () => {
           gap: 0.5rem;
           padding: 0.5rem 1rem;
           background: white;
-          border: 1px solid var(--color-border);
-          border-radius: 50px;
+          border: 1px solid var(--color-accent-light);
+          border-radius: var(--radius-full);
           font-size: 0.875rem;
-          font-weight: 500;
+          font-weight: 600;
           color: var(--color-primary);
           margin-bottom: 2rem;
           box-shadow: var(--shadow-sm);
@@ -256,34 +263,26 @@ const Hero = () => {
           height: 8px;
           background: var(--color-accent);
           border-radius: 50%;
+          box-shadow: 0 0 10px var(--color-accent);
         }
 
         .hero-title {
-          font-size: 3.5rem;
+          font-size: var(--text-5xl);
           margin-bottom: 1.5rem;
           line-height: 1.1;
           letter-spacing: -0.02em;
+          font-weight: 800;
         }
 
         .text-highlight {
           color: var(--color-accent);
           position: relative;
           display: inline-block;
+          background: linear-gradient(120deg, var(--color-accent) 0%, var(--color-secondary) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
         }
         
-        .text-highlight::after {
-           content: '';
-           position: absolute;
-           bottom: 5px;
-           left: 0;
-           width: 100%;
-           height: 8px;
-           background: var(--color-accent);
-           opacity: 0.2;
-           z-index: -1;
-           border-radius: 4px;
-        }
-
         .hero-text {
           font-size: 1.125rem;
           color: var(--color-text-muted);
@@ -345,11 +344,11 @@ const Hero = () => {
 
         .card-float {
             position: absolute;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
             padding: 0.75rem 1rem;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
             border: 1px solid rgba(255,255,255,0.5);
             display: flex;
             align-items: center;
@@ -368,8 +367,8 @@ const Hero = () => {
         }
 
         .card-icon {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -378,8 +377,8 @@ const Hero = () => {
         }
         
         .icon-optimize {
-            background: #F0FDFA; /* Teal tint */
-            color: var(--color-secondary);
+            background: var(--color-accent-light); /* Teal tint */
+            color: var(--color-accent);
         }
         
         .icon-secure {
@@ -392,6 +391,7 @@ const Hero = () => {
             color: var(--color-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            font-weight: 600;
         }
 
         .card-value {
@@ -404,6 +404,7 @@ const Hero = () => {
             .hero-container {
                 grid-template-columns: 1fr;
                 text-align: center;
+                gap: 2rem;
             }
             
             .hero-content {
@@ -413,7 +414,7 @@ const Hero = () => {
             }
 
             .hero-title {
-                font-size: 2.5rem;
+                font-size: 2.75rem;
             }
             
             .hero-text {
@@ -423,18 +424,26 @@ const Hero = () => {
 
             .hero-actions {
                 justify-content: center;
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .hero-actions .btn {
+                width: 100%;
             }
 
             .hero-trust {
                 justify-content: center;
+                flex-wrap: wrap;
             }
 
             .hero-visual {
-                display: none; 
+                height: 300px;
+                margin-top: 2rem;
             }
             
             .hero {
-                padding-top: 6rem;
+                padding-top: 8rem;
             }
         }
       `}</style>

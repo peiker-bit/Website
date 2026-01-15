@@ -82,7 +82,7 @@ const About = () => {
         .about-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 6rem;
+          gap: var(--space-24);
           align-items: center;
         }
 
@@ -90,20 +90,23 @@ const About = () => {
           text-transform: uppercase;
           letter-spacing: 2px;
           color: var(--color-accent);
-          font-weight: 600;
+          font-weight: 700;
           font-size: 0.875rem;
           margin-bottom: 1rem;
         }
 
         .about-content h2 {
-          font-size: 3rem;
+          font-size: var(--text-4xl);
           margin-bottom: 2rem;
+          line-height: 1.1;
+          color: var(--color-primary);
         }
 
         .about-content p {
           color: var(--color-text-muted);
           margin-bottom: 1.5rem;
-          font-size: 1.05rem;
+          font-size: 1.125rem;
+          line-height: 1.7;
         }
 
         .features-list {
@@ -116,23 +119,27 @@ const About = () => {
         .feature-item {
           display: flex;
           align-items: flex-start;
-          gap: 1rem;
+          gap: 1.25rem;
         }
 
         .feature-icon {
           color: var(--color-accent);
           flex-shrink: 0;
           margin-top: 4px;
+          background: var(--color-accent-light);
+          padding: 10px;
+          border-radius: 50%;
         }
 
         .feature-item h4 {
-          font-size: 1.1rem;
+          font-size: 1.25rem;
           margin-bottom: 0.25rem;
+          color: var(--color-primary);
         }
 
         .feature-desc {
           color: var(--color-text-muted);
-          font-size: 0.9rem;
+          font-size: 1rem;
         }
 
         .about-visual {
@@ -149,40 +156,45 @@ const About = () => {
         }
 
         .stack-card {
-            width: 280px;
-            height: 280px;
+            width: 320px;
+            height: 320px;
             padding: 3rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .stack-card h3 {
-            font-size: 4rem;
+            font-size: 5rem;
             color: white;
             line-height: 1;
             margin-bottom: 0.5rem;
+            font-weight: 800;
         }
         
         .stack-card p {
             color: rgba(255,255,255,0.9);
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 500;
             margin: 0;
         }
 
-        .bg-primary { background: var(--color-primary); }
-        .bg-accent { background: var(--color-accent); }
-        .bg-secondary { background: var(--color-secondary); }
+        .bg-primary { 
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+        }
+        .bg-secondary { 
+            background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-hover) 100%);
+        }
 
         .offset-card {
             position: absolute;
-            top: 40px;
-            left: 40px;
+            top: 60px;
+            left: 60px;
             z-index: -1;
             transform: rotate(-5deg);
         }
