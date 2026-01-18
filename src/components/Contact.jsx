@@ -168,7 +168,6 @@ const Contact = () => {
           padding: 1rem;
           border: 1px solid var(--color-border);
           border-radius: var(--radius-lg);
-          font-family: var(--font-body);
           font-size: 1rem;
           transition: all var(--transition-fast);
           background: var(--color-bg-subtle);
