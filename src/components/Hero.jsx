@@ -8,15 +8,7 @@ const Hero = () => {
             <div className="hero-bg"></div>
             <div className="container hero-container">
                 <div className="hero-content">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5 }}
-                        className="badge"
-                    >
-                        <span className="badge-dot"></span>
-                        Ihr Experte für Steuern und unternehmerische Entscheidungen
-                    </motion.div>
+
 
                     <h1 className="hero-title">
                         <motion.span
