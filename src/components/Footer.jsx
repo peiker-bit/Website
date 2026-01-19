@@ -35,10 +35,10 @@ const Footer = () => {
 
                     <div className="footer-links">
                         <h4>Kontakt</h4>
-                        <span>Musterstraße 123</span>
-                        <span>12345 Musterstadt</span>
-                        <a href="mailto:info@peiker-steuerberatung.de">info@peiker-steuerberatung.de</a>
-                        <a href="tel:+49123456789">0123 / 456 789</a>
+                        <span>Hauptstraße 34</span>
+                        <span>78628 Rottweil</span>
+                        <a href="mailto:Kontakt@Peiker-Steuerberatung.de">Kontakt@Peiker-Steuerberatung.de</a>
+                        <a href="tel:+4974120688800">0741 / 206 88 800</a>
                     </div>
                 </div>
 

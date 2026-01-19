@@ -18,9 +18,9 @@ const Contact = () => {
 
             <div className="info-cards">
               {[
-                { icon: <Phone size={24} />, title: "Telefon", desc: "0123 / 456 789" },
-                { icon: <Mail size={24} />, title: "E-Mail", desc: "info@peiker-steuerberatung.de" },
-                { icon: <MapPin size={24} />, title: "Standort", desc: <>Musterstraße 123<br />12345 Musterstadt</> }
+                { icon: <Phone size={24} />, title: "Telefon", desc: "0741 / 206 88 800" },
+                { icon: <Mail size={24} />, title: "E-Mail", desc: "Kontakt@Peiker-Steuerberatung.de" },
+                { icon: <MapPin size={24} />, title: "Standort", desc: <>Hauptstraße 34<br />78628 Rottweil</> }
               ].map((item, index) => (
                 <ScrollReveal key={index} delay={0.2 + (index * 0.1)}>
                   <motion.div

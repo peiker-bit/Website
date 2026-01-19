@@ -49,9 +49,9 @@ const Header = () => {
 
           <Link to="/kontakt" className="nav-item" onClick={closeMenu}>Kontakt</Link>
 
-          <a href="tel:+49123456789" className="contact-btn">
+          <a href="tel:+4974120688800" className="contact-btn">
             <Phone size={16} />
-            <span>Kontakt aufnehmen</span>
+            <span>0741/20688800</span>
           </a>
         </nav>
 

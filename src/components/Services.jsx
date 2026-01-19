@@ -5,34 +5,29 @@ import ScrollReveal from './ui/ScrollReveal';
 
 const services = [
   {
-    icon: <Calculator size={32} />,
-    title: 'Steuererklärung',
-    desc: 'Professionelle Erstellung Ihrer Einkommensteuererklärung für Arbeitnehmer, Rentner und Vermieter.'
-  },
-  {
-    icon: <Briefcase size={32} />,
-    title: 'Jahresabschluss',
-    desc: 'Erstellung von Jahresabschlüssen und Gewinnermittlungen nach Handels- und Steuerrecht.'
-  },
-  {
     icon: <TrendingUp size={32} />,
     title: 'Finanzbuchhaltung',
-    desc: 'Digitale Buchführung mit DATEV Unternehmen online – effizient und papierlos.'
+    desc: 'Ich erstelle deine laufende Finanzbuchhaltung inklusive aussagekräftiger Auswertungen, damit du jederzeit weißt, wo dein Unternehmen steht und fundierte Entscheidungen treffen kannst.'
+  },
+  {
+    icon: <Calculator size={32} />,
+    title: 'Jahresabschlüsse & Steuererklärungen',
+    desc: 'Ob Einnahmen-Überschuss-Rechnung oder Jahresabschluss: Ich erstelle deine Abschlüsse präzise, fristgerecht und mit Blick auf steuerliche Optimierungsmöglichkeiten.'
   },
   {
     icon: <Users size={32} />,
-    title: 'Lohnbuchhaltung',
-    desc: 'Zuverlässige Lohn- und Gehaltsabrechnungen inkl. aller Meldungen.'
+    title: 'Lohn- und Gehaltsabrechnung',
+    desc: 'Zuverlässige Lohnabrechnungen, korrekte Meldungen und rechtssichere Abwicklung – damit du dich auf dein Team und dein Unternehmen konzentrieren kannst.'
+  },
+  {
+    icon: <Briefcase size={32} />,
+    title: 'Steuerliche Beratung & Gestaltung',
+    desc: 'Ich berate dich nicht nur rückblickend, sondern vorausschauend. Gemeinsam entwickeln wir steuerliche Strategien, die zu deiner persönlichen oder unternehmerischen Situation passen.'
   },
   {
     icon: <PieChart size={32} />,
-    title: 'Betriebswirtschaft',
-    desc: 'Analyse Ihrer Zahlen und Beratung zur Unternehmenssteuerung und Liquidität.'
-  },
-  {
-    icon: <FileText size={32} />,
-    title: 'Gründungsberatung',
-    desc: 'Starten Sie erfolgreich in die Selbstständigkeit mit unserem Gründer-Coaching.'
+    title: 'Betriebswirtschaftliche Beratung',
+    desc: 'Zahlen allein reichen nicht. Ich helfe dir, deine betriebswirtschaftlichen Kennzahlen zu verstehen und sinnvoll für deine Planung zu nutzen.'
   }
 ];
 
@@ -57,10 +52,7 @@ const Services = () => {
       <div className="container">
         <ScrollReveal>
           <div className="section-header text-center">
-            <h2 className="section-title">Unsere Leistungen</h2>
-            <p className="section-subtitle">
-              Wir bieten Ihnen das komplette Spektrum moderner Steuerberatung. Digital, persönlich und verständlich.
-            </p>
+            <h2 className="section-title">Meine Leistungen – mit klarem Mehrwert</h2>
           </div>
         </ScrollReveal>
 

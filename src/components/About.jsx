@@ -13,25 +13,43 @@ const About = () => {
                             <div className="label-text">Die Kanzlei</div>
                             <h2>Mehr als nur<br />Steuern sparen.</h2>
                             <p>
-                                Wir verstehen uns als Ihr Partner auf Augenhöhe. Steuerberatung ist für uns mehr als das Abarbeiten von Formularen – es geht um Ihre wirtschaftliche Zukunft und Sicherheit.
+                                Ich verstehe mich als Partner auf Augenhöhe. Steuerberatung bedeutet für mich mehr als das Ausfüllen von Formularen – sie schafft Orientierung und unterstützt fundierte wirtschaftliche Entscheidungen.
                             </p>
                             <p>
-                                Mit modernster Software und einem engagierten Team sorgen wir dafür, dass Sie den Kopf frei haben für das Wesentliche: Ihren Erfolg.
+                                Durch strukturierte Abläufe, digitale Prozesse und persönliche Betreuung begleite ich dich bei steuerlichen Fragestellungen – damit steuerliche Themen planbar bleiben und du dich auf dein unternehmerisches Handeln konzentrieren kannst.
                             </p>
                         </ScrollReveal>
 
                         <div className="features-list">
                             {[
-                                { icon: <Target size={24} />, title: 'Zielorientiert', desc: 'Proaktive Beratung statt bloße Reaktion' },
-                                { icon: <ShieldCheck size={24} />, title: 'Verlässlich', desc: 'Fristgerecht, rechtssicher, transparent' },
-                                { icon: <Clock size={24} />, title: 'Zeitgemäß', desc: 'Digitale Prozesse für schnelle Ergebnisse' }
+                                {
+                                    icon: <Target size={24} />,
+                                    title: 'Zielorientiert',
+                                    subtitle: 'Beratung mit Blick nach vorn',
+                                    desc: 'Ich denke steuerliche Themen vorausschauend und spreche relevante Entwicklungen frühzeitig an, statt nur auf Vergangenes zu reagieren.'
+                                },
+                                {
+                                    icon: <ShieldCheck size={24} />,
+                                    title: 'Verlässlich',
+                                    subtitle: 'Struktur, Transparenz und klare Absprachen',
+                                    desc: 'Klare Prozesse, nachvollziehbare Abläufe und offene Kommunikation bilden die Grundlage einer verlässlichen Zusammenarbeit.'
+                                },
+                                {
+                                    icon: <Clock size={24} />,
+                                    title: 'Zeitgemäß',
+                                    subtitle: 'Digitale Prozesse, persönlich umgesetzt',
+                                    desc: 'Digitale Arbeitsweisen sorgen für effiziente Abläufe – ohne auf persönliche Beratung und Erreichbarkeit zu verzichten.'
+                                }
                             ].map((item, index) => (
                                 <ScrollReveal key={index} delay={index * 0.1}>
                                     <div className="feature-item">
                                         <div className="feature-icon">{item.icon}</div>
                                         <div>
                                             <h4>{item.title}</h4>
-                                            <span className="feature-desc">{item.desc}</span>
+                                            <div className="feature-desc">
+                                                <strong>{item.subtitle}</strong><br />
+                                                {item.desc}
+                                            </div>
                                         </div>
                                     </div>
                                 </ScrollReveal>
@@ -53,7 +71,7 @@ const About = () => {
                                         initial={{ opacity: 0 }}
                                         whileInView={{ opacity: 1 }}
                                         transition={{ duration: 1, delay: 0.5 }}
-                                    >20+</motion.span>
+                                    >15+</motion.span>
                                 </h3>
                                 <p>Jahre Erfahrung</p>
                             </motion.div>

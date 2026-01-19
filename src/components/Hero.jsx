@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, CheckCircle, TrendingDown, Clock } from 'lucide-react';
+import { ArrowRight, CheckCircle, TrendingDown, Clock, Briefcase, Laptop, Store, Home, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Hero = () => {
@@ -15,7 +15,7 @@ const Hero = () => {
                         className="badge"
                     >
                         <span className="badge-dot"></span>
-                        Ihre Experten für Finanzen & Steuern
+                        Ihr Experte für Steuern und unternehmerische Entscheidungen
                     </motion.div>
 
                     <h1 className="hero-title">
@@ -23,9 +23,10 @@ const Hero = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2, duration: 0.8 }}
-                            style={{ display: 'block' }}
+                            style={{ display: 'block', marginBottom: '0.5rem' }}
                         >
-                            Steuerberatung,
+                            Steuern verstehen. Entscheidungen sicher treffen.
+
                         </motion.span>
                         <motion.span
                             initial={{ opacity: 0, y: 20 }}
@@ -33,7 +34,8 @@ const Hero = () => {
                             transition={{ delay: 0.4, duration: 0.8 }}
                             className="text-highlight"
                         >
-                            die sich auszahlt.
+                            Zukunft gestalten.
+
                         </motion.span>
                     </h1>
 
@@ -43,7 +45,8 @@ const Hero = () => {
                         transition={{ delay: 0.6, duration: 0.8 }}
                         className="hero-text"
                     >
-                        Wir begleiten Privatpersonen und Unternehmen in Deutschland mit moderner, kompetenter und persönlicher Beratung in ihre finanzielle Zukunft.
+                        Ich unterstütze Unternehmer, Selbständige und anspruchsvolle Privatpersonen dabei, steuerliche Pflichten effizient zu erfüllen und steuerliche Gestaltungsspielräume gezielt zu nutzen – verständlich, vorausschauend und auf Augenhöhe.
+
                     </motion.p>
 
                     <motion.div
@@ -161,42 +164,34 @@ const Hero = () => {
                             </motion.g>
                         </svg>
 
-                        {/* Floating Cards */}
-                        <motion.div
-                            className="card-float card-optimize"
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1, y: [-5, 5, -5] }}
-                            transition={{
-                                x: { delay: 0.5, duration: 0.5 },
-                                y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-                            }}
-                        >
-                            <div className="card-icon icon-optimize" style={{ color: 'var(--color-accent)', background: '#F0F9FF' }}>
-                                <TrendingDown size={20} />
-                            </div>
-                            <div className="card-content">
-                                <div className="card-label">Steuerlast</div>
-                                <div className="card-value">Optimiert</div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div
-                            className="card-float card-secure"
-                            initial={{ x: 20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1, y: [5, -5, 5] }}
-                            transition={{
-                                x: { delay: 0.8, duration: 0.5 },
-                                y: { duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }
-                            }}
-                        >
-                            <div className="card-icon icon-secure" style={{ color: 'var(--color-accent)', background: '#F0F9FF' }}>
-                                <Clock size={20} />
-                            </div>
-                            <div className="card-content">
-                                <div className="card-label">Zeitaufwand</div>
-                                <div className="card-value">Minimal</div>
-                            </div>
-                        </motion.div>
+                        {/* Floating Cards - Target Groups */}
+                        {[
+                            { label: 'Unternehmer', icon: Briefcase, color: '#3B82F6', bg: '#EFF6FF', pos: { top: '10%', right: '20%' }, delay: 0.5 },
+                            { label: 'Freiberufler', icon: Laptop, color: '#8B5CF6', bg: '#F5F3FF', pos: { top: '35%', left: '-5%' }, delay: 0.7 },
+                            { label: 'Gewerbetreibende', icon: Store, color: '#10B981', bg: '#ECFDF5', pos: { bottom: '20%', left: '0%' }, delay: 0.9 },
+                            { label: 'Vermieter', icon: Home, color: '#F59E0B', bg: '#FFFBEB', pos: { bottom: '10%', right: '15%' }, delay: 1.1 },
+                            { label: 'Arbeitnehmer', icon: User, color: '#EC4899', bg: '#FDF2F8', pos: { top: '45%', right: '-10%' }, delay: 1.3 }
+                        ].map((item, index) => (
+                            <motion.div
+                                key={index}
+                                className="card-float"
+                                style={{ ...item.pos }}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
+                                transition={{
+                                    opacity: { delay: item.delay, duration: 0.5 },
+                                    scale: { delay: item.delay, duration: 0.5 },
+                                    y: { duration: 4 + index, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
+                                }}
+                            >
+                                <div className="card-icon" style={{ color: item.color, background: item.bg }}>
+                                    <item.icon size={18} />
+                                </div>
+                                <div className="card-content-simple">
+                                    <div className="card-value-simple">{item.label}</div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -269,8 +264,8 @@ const Hero = () => {
         .hero-title {
           font-size: var(--text-5xl);
           margin-bottom: 1.5rem;
-          line-height: 1.1;
-          letter-spacing: -0.02em;
+          line-height: 1.3;
+          letter-spacing: -0.01em;
           font-weight: 800;
         }
 
@@ -386,18 +381,15 @@ const Hero = () => {
             color: #059669;
         }
 
-        .card-label {
-            font-size: 0.75rem;
-            color: var(--color-text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
+        .card-content-simple {
+            display: flex;
+            align-items: center;
         }
 
-        .card-value {
-            font-weight: 700;
+        .card-value-simple {
+            font-weight: 600;
             color: var(--color-primary);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         @media (max-width: 968px) {
