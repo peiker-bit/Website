@@ -10,23 +10,87 @@ import DigitaleZusammenarbeit from './components/DigitaleZusammenarbeit';
 import ServicesPage from './components/ServicesPage';
 import Contact from './components/Contact';
 
+// Admin components
+import AdminLogin from './components/admin/AdminLogin';
+import AdminDashboard from './components/admin/AdminDashboard';
+import MessageList from './components/admin/MessageList';
+import EmailSettings from './components/admin/EmailSettings';
+import ProtectedRoute from './components/admin/ProtectedRoute';
+
 function App() {
   return (
     <Router>
       <div className="app">
-        <Header />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/leistungen" element={<ServicesPage />} />
-            <Route path="/lohn" element={<Payroll />} />
-            <Route path="/privatpersonen" element={<Privatpersonen />} />
-            <Route path="/unternehmen" element={<Unternehmen />} />
-            <Route path="/digitale-zusammenarbeit" element={<DigitaleZusammenarbeit />} />
-            <Route path="/kontakt" element={<Contact />} />
-          </Routes>
-        </main>
-        <Footer />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={
+            <>
+              <Header />
+              <main><Home /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/leistungen" element={
+            <>
+              <Header />
+              <main><ServicesPage /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/lohn" element={
+            <>
+              <Header />
+              <main><Payroll /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/privatpersonen" element={
+            <>
+              <Header />
+              <main><Privatpersonen /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/unternehmen" element={
+            <>
+              <Header />
+              <main><Unternehmen /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/digitale-zusammenarbeit" element={
+            <>
+              <Header />
+              <main><DigitaleZusammenarbeit /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/kontakt" element={
+            <>
+              <Header />
+              <main><Contact /></main>
+              <Footer />
+            </>
+          } />
+
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/messages" element={
+            <ProtectedRoute>
+              <MessageList />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/settings" element={
+            <ProtectedRoute>
+              <EmailSettings />
+            </ProtectedRoute>
+          } />
+        </Routes>
       </div>
     </Router>
   );

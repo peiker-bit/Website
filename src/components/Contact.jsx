@@ -1,9 +1,73 @@
-import React from 'react';
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ScrollReveal from './ui/ScrollReveal';
+import { supabase } from '../lib/supabaseClient';
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: '',
+    confirm_email: '' // Honeypot
+  });
+  const [status, setStatus] = useState('idle'); // idle, loading, success, error
+  const [mountTime, setMountTime] = useState(0);
+
+  useEffect(() => {
+    setMountTime(Date.now());
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('loading');
+
+    // 1. Honeypot Check
+    if (formData.confirm_email) {
+      console.log('Bot detected: Honeypot filled.');
+      // Fake success to fool bot
+      setStatus('success');
+      setTimeout(() => setStatus('idle'), 5000);
+      return;
+    }
+
+    // 2. Time Check (Minimum 2 seconds)
+    const timeDiff = Date.now() - mountTime;
+    if (timeDiff < 2000) {
+      console.log('Bot detected: Submitted too fast.');
+      setStatus('success'); // Fake success
+      setTimeout(() => setStatus('idle'), 5000);
+      return;
+    }
+
+    if (!formData.name || !formData.email || !formData.message) {
+      alert('Bitte füllen Sie alle Felder aus.');
+      setStatus('idle');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([
+          { name: formData.name, email: formData.email, message: formData.message }
+        ]);
+
+      if (error) throw error;
+
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '', confirm_email: '' });
+      setTimeout(() => setStatus('idle'), 5000); // Reset status after 5s
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setStatus('error');
+    }
+  };
+
   return (
     <section id="contact" className="section bg-light">
       <div className="container">
@@ -12,7 +76,8 @@ const Contact = () => {
             <ScrollReveal>
               <h2>Kontakt aufnehmen</h2>
               <p>
-                Lassen Sie uns über Ihre Zukunft sprechen. Vereinbaren Sie einen unverbindlichen Ersttermin.
+                Lass uns über deine steuerlichen Themen sprechen.<br />
+                In einem unverbindlichen Erstgespräch verschaffen wir uns gemeinsam einen Überblick und klären, wie ich dich unterstützen kann.
               </p>
             </ScrollReveal>
 
@@ -45,27 +110,90 @@ const Contact = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="contact-form-container"
           >
-            <form className="contact-form" onSubmit={(e) => e.preventDefault()}>
+            <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label htmlFor="name">Name</label>
-                <input type="text" id="name" placeholder="Ihr Name" />
+                <input
+                  type="text"
+                  id="name"
+                  placeholder="Ihr Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={status === 'loading'}
+                />
               </div>
+
+              {/* Honeypot Field - Hidden */}
+              <div className="form-group" style={{ display: 'none', position: 'absolute', left: '-9999px' }}>
+                <label htmlFor="confirm_email">Bitte nicht ausfüllen</label>
+                <input
+                  type="text"
+                  id="confirm_email"
+                  value={formData.confirm_email}
+                  onChange={handleChange}
+                  autoComplete="off"
+                  tabIndex={-1}
+                />
+              </div>
+
               <div className="form-group">
                 <label htmlFor="email">E-Mail</label>
-                <input type="email" id="email" placeholder="ihre@email.de" />
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="ihre@email.de"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={status === 'loading'}
+                />
               </div>
               <div className="form-group">
                 <label htmlFor="message">Nachricht</label>
-                <textarea id="message" rows="4" placeholder="Wie können wir Ihnen helfen?"></textarea>
+                <textarea
+                  id="message"
+                  rows="4"
+                  placeholder="Wie können wir Ihnen helfen?"
+                  value={formData.message}
+                  onChange={handleChange}
+                  disabled={status === 'loading'}
+                ></textarea>
               </div>
-              <motion.button
-                type="submit"
-                className="btn btn-primary full-width"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Nachricht senden <Send size={18} style={{ marginLeft: '8px' }} />
-              </motion.button>
+
+              {status === 'error' && (
+                <div style={{ color: 'red', marginBottom: '1rem' }}>
+                  Es gab einen Fehler beim Senden. Bitte versuchen Sie es später erneut oder rufen Sie an.
+                </div>
+              )}
+
+              {status === 'success' ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="success-message"
+                  style={{ color: 'green', fontWeight: 'bold', padding: '1rem', background: '#e6ffe6', borderRadius: '8px', textAlign: 'center' }}
+                >
+                  Vielen Dank! Ihre Nachricht wurde gesendet.
+                </motion.div>
+              ) : (
+                <motion.button
+                  type="submit"
+                  className="btn btn-primary full-width"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={status === 'loading'}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {status === 'loading' ? (
+                    <>
+                      <Loader2 size={18} className="spin-anim" style={{ marginRight: '8px' }} /> Wird gesendet...
+                    </>
+                  ) : (
+                    <>
+                      Nachricht senden <Send size={18} style={{ marginLeft: '8px' }} />
+                    </>
+                  )}
+                </motion.button>
+              )}
             </form>
           </motion.div>
         </div>
@@ -77,6 +205,15 @@ const Contact = () => {
           grid-template-columns: 1fr 1fr;
           gap: 6rem;
           align-items: flex-start;
+        }
+
+        .spin-anim {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .contact-info h2 {
