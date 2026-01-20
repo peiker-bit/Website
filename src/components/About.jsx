@@ -237,7 +237,31 @@ const About = () => {
             }
             
             .about-visual {
-                display: none; 
+                display: flex; /* Show on mobile */
+                height: 400px;
+                margin-top: 2rem;
+            }
+
+            .stack-card {
+                width: 260px;
+                height: 260px;
+                padding: 2rem;
+            }
+             
+            .stack-card h3 {
+                font-size: 3.5rem;
+            }
+
+            .offset-card {
+                top: 30px;
+                left: 30px;
+            }
+            
+            .circle-deco {
+                width: 350px;
+                height: 350px;
+                margin-left: -175px; 
+                margin-top: -175px;
             }
         }
       `}</style>

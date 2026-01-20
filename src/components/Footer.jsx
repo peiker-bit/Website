@@ -119,6 +119,10 @@ const Footer = () => {
         }
 
         @media (max-width: 968px) {
+            .footer {
+                padding-top: 3rem;
+            }
+
             .footer-top {
                 grid-template-columns: 1fr;
                 gap: 3rem;

@@ -391,90 +391,103 @@ const Hero = () => {
             font-size: 0.9rem;
         }
 
-        @media (max-width: 968px) {
-            .hero-container {
-                grid-template-columns: 1fr;
-                text-align: center;
-                gap: 2rem;
-            }
-            
-            .hero-content {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
+            @media (max-width: 968px) {
+                .hero-container {
+                    grid-template-columns: 1fr;
+                    text-align: center;
+                    gap: 3rem;
+                    padding-left: var(--space-4);
+                    padding-right: var(--space-4);
+                }
+                
+                .hero-content {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+    
+                .hero-title {
+                    font-size: 2.25rem; /* Adjusted for better mobile fit */
+                    line-height: 1.2;
+                }
+                
+                .hero-text {
+                    margin-left: auto;
+                    margin-right: auto;
+                    font-size: 1rem;
+                }
+    
+                .hero-actions {
+                    justify-content: center;
+                    width: 100%;
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+                
+                .hero-actions .btn {
+                    width: 100%;
+                    padding: 0.75rem 1.5rem;
+                }
+    
+                .hero-trust {
+                    justify-content: center;
+                    flex-wrap: wrap;
+                    gap: 1.5rem;
+                }
+    
+                .hero-visual {
+                    height: auto;
+                    min-height: auto;
+                    margin-top: 2rem;
+                    flex-direction: column;
+                    padding-bottom: 2rem;
+                }
+    
+                .cycle-container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    height: auto;
+                }
+    
+                .digital-cycle {
+                    max-width: 280px; /* Smaller cycle on mobile */
+                    margin-bottom: 2rem;
+                }
+    
+                .hero-cards-wrapper {
+                    display: grid !important;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 0.75rem;
+                    width: 100%;
+                    margin-top: 1rem;
+                }
+    
+                /* Override motion styles and absolute positioning on mobile */
+                .card-float {
+                    position: relative !important;
+                    top: auto !important;
+                    bottom: auto !important;
+                    left: auto !important;
+                    right: auto !important;
+                    transform: none !important;
+                    margin: 0 !important;
+                    width: 100%;
+                    justify-content: flex-start;
+                    padding: 0.6rem 0.75rem; /* Compact padding */
+                }
+				
+				.card-value-simple {
+					font-size: 0.8rem;
+				}
 
-            .hero-title {
-                font-size: 2.75rem;
+                .hero {
+                    padding-top: 6rem;
+                    padding-bottom: 3rem;
+                    height: auto;
+                    min-height: auto;
+                }
             }
-            
-            .hero-text {
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .hero-actions {
-                justify-content: center;
-                width: 100%;
-                flex-direction: column;
-            }
-            
-            .hero-actions .btn {
-                width: 100%;
-            }
-
-            .hero-trust {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .hero-visual {
-                height: auto;
-                min-height: 500px;
-                margin-top: 3rem;
-                flex-direction: column;
-            }
-
-            .cycle-container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                height: auto;
-            }
-
-            .digital-cycle {
-                max-width: 300px;
-                margin-bottom: 2rem;
-            }
-
-            .hero-cards-wrapper {
-                display: grid !important;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-                width: 100%;
-                margin-top: 1rem;
-            }
-
-            /* Override motion styles and absolute positioning on mobile */
-            .card-float {
-                position: relative !important;
-                top: auto !important;
-                bottom: auto !important;
-                left: auto !important;
-                right: auto !important;
-                transform: none !important;
-                margin: 0 !important;
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .hero {
-                padding-top: 6rem;
-                padding-bottom: 4rem;
-                height: auto;
-                min-height: auto;
-            }
-        }
       `}</style>
         </section>
     );

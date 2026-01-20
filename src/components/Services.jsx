@@ -111,7 +111,7 @@ const Services = () => {
 
         .services-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 2rem;
         }
 
@@ -128,6 +128,12 @@ const Services = () => {
           display: flex;
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        @media (max-width: 640px) {
+            .service-card {
+                padding: 1.5rem;
+            }
         }
 
         .service-card:hover {
