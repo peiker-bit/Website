@@ -9,6 +9,8 @@ import Unternehmen from './components/Unternehmen';
 import DigitaleZusammenarbeit from './components/DigitaleZusammenarbeit';
 import ServicesPage from './components/ServicesPage';
 import Contact from './components/Contact';
+import AGB from './components/AGB';
+import Impressum from './components/Impressum';
 
 // Admin components
 import AdminLogin from './components/admin/AdminLogin';
@@ -69,6 +71,20 @@ function App() {
             <>
               <Header />
               <main><Contact /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/agb" element={
+            <>
+              <Header />
+              <main><AGB /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/impressum" element={
+            <>
+              <Header />
+              <main><Impressum /></main>
               <Footer />
             </>
           } />

@@ -20,9 +20,9 @@ const Footer = () => {
 
                     <div className="footer-links">
                         <h4>Rechtliches</h4>
-                        <a href="#">Impressum</a>
+                        <Link to="/impressum">Impressum</Link>
                         <a href="#">Datenschutz</a>
-                        <a href="#">AGB</a>
+                        <Link to="/agb">AGB</Link>
                     </div>
 
                     <div className="footer-links">
