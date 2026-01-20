@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calculator, TrendingUp, Users, FileText, PieChart, Briefcase } from 'lucide-react';
+import { Calculator, TrendingUp, Users, FileText, PieChart, Briefcase, Gift } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ScrollReveal from './ui/ScrollReveal';
 
@@ -28,6 +28,11 @@ const services = [
     icon: <PieChart size={32} />,
     title: 'Betriebswirtschaftliche Beratung',
     desc: 'Zahlen allein reichen nicht. Ich helfe dir, deine betriebswirtschaftlichen Kennzahlen zu verstehen und sinnvoll für deine Planung zu nutzen.'
+  },
+  {
+    icon: <Gift size={32} />,
+    title: 'Erbschaft & Schenkung',
+    desc: 'Ich unterstütze dich bei steuerlichen Fragen im Zusammenhang mit Erbschaften und Schenkungen und begleite die steuerliche Abwicklung strukturiert und nachvollziehbar.'
   }
 ];
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, ArrowRight } from 'lucide-react';
 import logo from '../assets/logo.png';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -18,13 +18,12 @@ const Header = () => {
 
   const closeMenu = () => setIsMenuOpen(false);
 
+  const navigate = useNavigate();
+
   const navItems = [
-    { label: 'Startseite', path: '/' },
-    { label: 'Leistungen', path: '/leistungen' }, // New page planned
-    { label: 'Privatpersonen', path: '/privatpersonen' },
-    { label: 'Unternehmen', path: '/unternehmen' }, // New page planned
-    { label: 'Lohn', path: '/lohn' },
-    { label: 'Digital', path: '/digitale-zusammenarbeit' }, // Shortened for mobile fit? Or full name: 'Digitale Zusammenarbeit'
+    { label: 'Startseite', path: '/#home' },
+    { label: 'Leistungen', path: '/#services' },
+    { label: 'Kanzlei', path: '/#about' },
   ];
 
   return (
@@ -37,17 +36,17 @@ const Header = () => {
         {/* Desktop Nav */}
         <nav className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
           {navItems.map((item) => (
-            <Link
+            <a
               key={item.path}
-              to={item.path}
-              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+              href={item.path}
+              className={`nav-item ${location.hash === item.path.substring(1) ? 'active' : ''}`}
               onClick={closeMenu}
             >
               {item.label}
-            </Link>
+            </a>
           ))}
 
-          <Link to="/kontakt" className="nav-item" onClick={closeMenu}>Kontakt</Link>
+          <a href="/#contact" className="nav-item" onClick={closeMenu}>Kontakt</a>
 
           <a href="tel:+4974120688800" className="contact-btn">
             <Phone size={16} />

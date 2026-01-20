@@ -1,10 +1,10 @@
 import React from 'react';
-import { ArrowRight, CheckCircle, TrendingDown, Clock, Briefcase, Laptop, Store, Home, User } from 'lucide-react';
+import { ArrowRight, CheckCircle, TrendingDown, Clock, Briefcase, Laptop, Store, Home, User, Gift } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Hero = () => {
     return (
-        <section className="hero">
+        <section id="home" className="hero">
             <div className="hero-bg"></div>
             <div className="container hero-container">
                 <div className="hero-content">
@@ -157,33 +157,36 @@ const Hero = () => {
                         </svg>
 
                         {/* Floating Cards - Target Groups */}
-                        {[
-                            { label: 'Unternehmer', icon: Briefcase, color: '#3B82F6', bg: '#EFF6FF', pos: { top: '10%', right: '20%' }, delay: 0.5 },
-                            { label: 'Freiberufler', icon: Laptop, color: '#8B5CF6', bg: '#F5F3FF', pos: { top: '35%', left: '-5%' }, delay: 0.7 },
-                            { label: 'Gewerbetreibende', icon: Store, color: '#10B981', bg: '#ECFDF5', pos: { bottom: '20%', left: '0%' }, delay: 0.9 },
-                            { label: 'Vermieter', icon: Home, color: '#F59E0B', bg: '#FFFBEB', pos: { bottom: '10%', right: '15%' }, delay: 1.1 },
-                            { label: 'Arbeitnehmer', icon: User, color: '#EC4899', bg: '#FDF2F8', pos: { top: '45%', right: '-10%' }, delay: 1.3 }
-                        ].map((item, index) => (
-                            <motion.div
-                                key={index}
-                                className="card-float"
-                                style={{ ...item.pos }}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
-                                transition={{
-                                    opacity: { delay: item.delay, duration: 0.5 },
-                                    scale: { delay: item.delay, duration: 0.5 },
-                                    y: { duration: 4 + index, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
-                                }}
-                            >
-                                <div className="card-icon" style={{ color: item.color, background: item.bg }}>
-                                    <item.icon size={18} />
-                                </div>
-                                <div className="card-content-simple">
-                                    <div className="card-value-simple">{item.label}</div>
-                                </div>
-                            </motion.div>
-                        ))}
+                        <div className="hero-cards-wrapper">
+                            {[
+                                { label: 'Unternehmen', icon: Briefcase, color: '#3B82F6', bg: '#EFF6FF', pos: { top: '5%', left: '50%', transform: 'translateX(-50%)' }, delay: 0.5 },
+                                { label: 'Freiberufler', icon: Laptop, color: '#8B5CF6', bg: '#F5F3FF', pos: { top: '25%', left: '85%' }, delay: 0.7 },
+                                { label: 'Gewerbetreibende', icon: Store, color: '#10B981', bg: '#ECFDF5', pos: { bottom: '25%', left: '85%' }, delay: 0.9 },
+                                { label: 'Vermieter', icon: Home, color: '#F59E0B', bg: '#FFFBEB', pos: { bottom: '5%', left: '50%', transform: 'translateX(-50%)' }, delay: 1.1 },
+                                { label: 'Arbeitnehmer', icon: User, color: '#EC4899', bg: '#FDF2F8', pos: { bottom: '25%', right: '85%' }, delay: 1.3 },
+                                { label: 'Erbschaft & Schenkung', icon: Gift, color: '#14b8a6', bg: '#ccfbf1', pos: { top: '25%', right: '85%' }, delay: 1.5 }
+                            ].map((item, index) => (
+                                <motion.div
+                                    key={index}
+                                    className="card-float"
+                                    style={{ ...item.pos }}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1, y: [0, -10, 0] }}
+                                    transition={{
+                                        opacity: { delay: item.delay, duration: 0.5 },
+                                        scale: { delay: item.delay, duration: 0.5 },
+                                        y: { duration: 4 + index, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }
+                                    }}
+                                >
+                                    <div className="card-icon" style={{ color: item.color, background: item.bg }}>
+                                        <item.icon size={18} />
+                                    </div>
+                                    <div className="card-content-simple">
+                                        <div className="card-value-simple">{item.label}</div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -318,6 +321,10 @@ const Hero = () => {
             align-items: center;
         }
 
+        .hero-cards-wrapper {
+            display: contents;
+        }
+
         .digital-cycle {
             width: 100%;
             max-width: 500px;
@@ -422,12 +429,50 @@ const Hero = () => {
             }
 
             .hero-visual {
-                height: 300px;
-                margin-top: 2rem;
+                height: auto;
+                min-height: 500px;
+                margin-top: 3rem;
+                flex-direction: column;
             }
-            
+
+            .cycle-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                height: auto;
+            }
+
+            .digital-cycle {
+                max-width: 300px;
+                margin-bottom: 2rem;
+            }
+
+            .hero-cards-wrapper {
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            /* Override motion styles and absolute positioning on mobile */
+            .card-float {
+                position: relative !important;
+                top: auto !important;
+                bottom: auto !important;
+                left: auto !important;
+                right: auto !important;
+                transform: none !important;
+                margin: 0 !important;
+                width: 100%;
+                justify-content: flex-start;
+            }
+
             .hero {
-                padding-top: 8rem;
+                padding-top: 6rem;
+                padding-bottom: 4rem;
+                height: auto;
+                min-height: auto;
             }
         }
       `}</style>

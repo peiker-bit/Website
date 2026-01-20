@@ -13,6 +13,7 @@ const Contact = () => {
   });
   const [status, setStatus] = useState('idle'); // idle, loading, success, error
   const [mountTime, setMountTime] = useState(0);
+  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     setMountTime(Date.now());
@@ -20,6 +21,10 @@ const Contact = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+    // Clear validation error when user starts typing
+    if (validationErrors[e.target.id]) {
+      setValidationErrors({ ...validationErrors, [e.target.id]: false });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -44,11 +49,20 @@ const Contact = () => {
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.message) {
-      alert('Bitte füllen Sie alle Felder aus.');
+    // 3. Validation - Mark missing fields in red
+    const errors = {};
+    if (!formData.name) errors.name = true;
+    if (!formData.email) errors.email = true;
+    if (!formData.message) errors.message = true;
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
       setStatus('idle');
       return;
     }
+
+    // Clear any previous validation errors
+    setValidationErrors({});
 
     try {
       const { error } = await supabase
@@ -120,6 +134,7 @@ const Contact = () => {
                   value={formData.name}
                   onChange={handleChange}
                   disabled={status === 'loading'}
+                  className={validationErrors.name ? 'error' : ''}
                 />
               </div>
 
@@ -145,6 +160,7 @@ const Contact = () => {
                   value={formData.email}
                   onChange={handleChange}
                   disabled={status === 'loading'}
+                  className={validationErrors.email ? 'error' : ''}
                 />
               </div>
               <div className="form-group">
@@ -156,12 +172,19 @@ const Contact = () => {
                   value={formData.message}
                   onChange={handleChange}
                   disabled={status === 'loading'}
+                  className={validationErrors.message ? 'error' : ''}
                 ></textarea>
               </div>
 
               {status === 'error' && (
                 <div style={{ color: 'red', marginBottom: '1rem' }}>
                   Es gab einen Fehler beim Senden. Bitte versuchen Sie es später erneut oder rufen Sie an.
+                </div>
+              )}
+
+              {Object.keys(validationErrors).length > 0 && (
+                <div className="validation-warning">
+                  Bitte füllen Sie alle Felder aus.
                 </div>
               )}
 
@@ -316,6 +339,29 @@ const Contact = () => {
           border-color: var(--color-accent);
           box-shadow: 0 0 0 3px var(--color-accent-light);
           background: white;
+        }
+
+        .form-group input.error,
+        .form-group textarea.error {
+          border-color: #dc3545;
+          background-color: #fff5f5;
+        }
+
+        .form-group input.error:focus,
+        .form-group textarea.error:focus {
+          border-color: #dc3545;
+          box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+        }
+
+        .validation-warning {
+          color: #dc3545;
+          font-weight: 600;
+          text-align: center;
+          margin-bottom: 1rem;
+          padding: 0.75rem;
+          background: #fff5f5;
+          border-radius: var(--radius-lg);
+          border: 1px solid #dc3545;
         }
 
         .full-width {

@@ -11,12 +11,12 @@ const About = () => {
                     <div className="about-content">
                         <ScrollReveal>
                             <div className="label-text">Die Kanzlei</div>
-                            <h2>Mehr als nur<br />Steuern sparen.</h2>
+                            <h2>Steuerberatung, die Orientierung schafft und Entscheidungen unterstützt</h2>
                             <p>
-                                Ich verstehe mich als Partner auf Augenhöhe. Steuerberatung bedeutet für mich mehr als das Ausfüllen von Formularen – sie schafft Orientierung und unterstützt fundierte wirtschaftliche Entscheidungen.
+                                Ich verstehe mich als Partner auf Augenhöhe. Steuerberatung bedeutet für mich mehr als das Ausfüllen von Formularen – sie schafft Struktur, Orientierung und eine verlässliche Grundlage für fundierte wirtschaftliche Entscheidungen.
                             </p>
                             <p>
-                                Durch strukturierte Abläufe, digitale Prozesse und persönliche Betreuung begleite ich dich bei steuerlichen Fragestellungen – damit steuerliche Themen planbar bleiben und du dich auf dein unternehmerisches Handeln konzentrieren kannst.
+                                Durch klare Abläufe, digitale Prozesse und persönliche Betreuung begleite ich dich bei steuerlichen Fragestellungen. So bleiben steuerliche Themen nachvollziehbar und planbar und fügen sich sinnvoll in dein unternehmerisches Handeln ein.
                             </p>
                         </ScrollReveal>
 
