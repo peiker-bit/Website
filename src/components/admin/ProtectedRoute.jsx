@@ -50,18 +50,19 @@ const ProtectedRoute = ({ children }) => {
             align-items: center;
             justify-content: center;
             gap: 1.5rem;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: var(--color-bg-body);
           }
 
           .protected-route-loading .spin-icon {
-            color: #3b82f6;
+            color: var(--color-secondary);
             animation: spin 1s linear infinite;
           }
 
           .protected-route-loading p {
-            color: #64748b;
+            color: var(--color-text-muted);
             font-size: 1.1rem;
             font-weight: 500;
+            font-family: var(--font-body);
           }
 
           @keyframes spin {
