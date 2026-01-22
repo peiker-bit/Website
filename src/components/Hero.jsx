@@ -48,10 +48,12 @@ const Hero = () => {
                         className="hero-actions"
                     >
                         <motion.a
-                            href="#contact"
+                            href="https://terminbuchung-three.vercel.app/buchen"
                             className="btn btn-primary"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
+                            target="_blank"
+                            rel="noopener noreferrer"
                         >
                             Termin vereinbaren <ArrowRight size={18} style={{ marginLeft: '8px' }} />
                         </motion.a>
@@ -61,7 +63,7 @@ const Hero = () => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            Unsere Leistungen
+                            Meine Leistungen
                         </motion.a>
                     </motion.div>
 
