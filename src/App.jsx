@@ -16,6 +16,7 @@ import Impressum from './components/Impressum';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import MessageList from './components/admin/MessageList';
+import BookingList from './components/admin/BookingList';
 import EmailSettings from './components/admin/EmailSettings';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
@@ -99,6 +100,11 @@ function App() {
           <Route path="/admin/messages" element={
             <ProtectedRoute>
               <MessageList />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/bookings" element={
+            <ProtectedRoute>
+              <BookingList />
             </ProtectedRoute>
           } />
           <Route path="/admin/settings" element={

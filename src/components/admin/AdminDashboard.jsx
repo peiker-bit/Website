@@ -1,34 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { subscribeToBookings } from '../../lib/bookingClient';
 import AdminLayout from './AdminLayout';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    total: 0,
-    unread: 0,
-    today: 0,
+    totalMessages: 0,
+    unreadMessages: 0,
+    todayMessages: 0,
+    totalBookings: 0,
+    upcomingBookings: 0,
+    todayBookings: 0
   });
   const [recentMessages, setRecentMessages] = useState([]);
+  const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
 
-    // Subscribe to real-time updates
-    const subscription = supabase
+    // Subscribe to real-time updates for messages
+    const msgSubscription = supabase
       .channel('dashboard_messages')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, () => {
         fetchDashboardData();
       })
       .subscribe();
 
+    // Subscribe to bookings
+    const bookingUnsubscribe = subscribeToBookings((bookings) => {
+      updateBookingStats(bookings);
+    });
+
     return () => {
-      subscription.unsubscribe();
+      msgSubscription.unsubscribe();
+      bookingUnsubscribe();
     };
   }, []);
+
+  const updateBookingStats = (bookings) => {
+    const total = bookings.length;
+    const now = new Date();
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+    const todayEnd = new Date(now.setHours(23, 59, 59, 999));
+
+    const todayCount = bookings.filter(b => {
+      const d = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+      return d >= todayStart && d <= todayEnd;
+    }).length;
+
+    const upcoming = bookings.filter(b => {
+      const d = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+      return d >= new Date();
+    }).length;
+
+    setStats(prev => ({
+      ...prev,
+      totalBookings: total,
+      todayBookings: todayCount,
+      upcomingBookings: upcoming
+    }));
+
+    setRecentBookings(bookings.slice(0, 5));
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -49,7 +86,12 @@ const AdminDashboard = () => {
       todayStart.setHours(0, 0, 0, 0);
       const today = allMessages?.filter(m => new Date(m.created_at) >= todayStart).length || 0;
 
-      setStats({ total, unread, today });
+      setStats(prev => ({
+        ...prev,
+        totalMessages: total,
+        unreadMessages: unread,
+        todayMessages: today
+      }));
 
       // Get recent 5 messages
       setRecentMessages(allMessages?.slice(0, 5) || []);
@@ -76,28 +118,40 @@ const AdminDashboard = () => {
     return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  const formatFutureDate = (date) => {
+    const d = date?.toDate ? date.toDate() : new Date(date);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
+
   const statCards = [
     {
-      label: 'Gesamt Nachrichten',
-      value: stats.total,
+      label: 'Nachrichten',
+      value: stats.totalMessages,
       icon: <Mail size={24} />,
       color: 'var(--color-secondary)',
-      bgColor: '#eff6ff', // Keep light backgrounds or use opacity
+      bgColor: '#eff6ff',
     },
     {
       label: 'Ungelesen',
-      value: stats.unread,
+      value: stats.unreadMessages,
       icon: <MailOpen size={24} />,
       color: 'var(--color-cta)',
       bgColor: '#fff7ed',
     },
     {
-      label: 'Heute',
-      value: stats.today,
-      icon: <TrendingUp size={24} />,
-      color: 'var(--color-success)',
-      bgColor: '#f0fdf4',
+      label: 'Buchungen',
+      value: stats.totalBookings,
+      icon: <Calendar size={24} />,
+      color: '#8b5cf6', // Violet
+      bgColor: '#f5f3ff',
     },
+    {
+      label: 'Kommende Termine',
+      value: stats.upcomingBookings,
+      icon: <Clock size={24} />,
+      color: '#10b981', // Emerald
+      bgColor: '#ecfdf5',
+    }
   ];
 
   if (loading) {
@@ -134,7 +188,7 @@ const AdminDashboard = () => {
       <div className="dashboard-container">
         <div className="dashboard-header">
           <h1>Dashboard</h1>
-          <p>Willkommen zurück! Hier ist eine Übersicht Ihrer Nachrichten.</p>
+          <p>Willkommen zurück! Hier ist eine Übersicht Ihrer Nachrichten und Termine.</p>
         </div>
 
         {/* Stats Cards */}
@@ -159,57 +213,108 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Recent Messages */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="recent-messages-section"
-        >
-          <div className="section-header">
-            <h2>Aktuelle Nachrichten</h2>
-            <Link to="/admin/messages" className="view-all-link">
-              Alle ansehen <ArrowRight size={16} />
-            </Link>
-          </div>
+        <div className="dashboard-content-grid">
+          {/* Recent Messages */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="recent-section"
+          >
+            <div className="section-header">
+              <h2>Aktuelle Nachrichten</h2>
+              <Link to="/admin/messages" className="view-all-link">
+                Alle ansehen <ArrowRight size={16} />
+              </Link>
+            </div>
 
-          {recentMessages.length === 0 ? (
-            <div className="empty-state">
-              <Mail size={48} />
-              <p>Keine Nachrichten vorhanden</p>
-            </div>
-          ) : (
-            <div className="messages-list">
-              {recentMessages.map((message, index) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + index * 0.05 }}
-                  className={`message-item ${!message.is_read ? 'unread' : ''}`}
-                >
-                  <div className="message-icon">
-                    {message.is_read ? <MailOpen size={20} /> : <Mail size={20} />}
-                  </div>
-                  <div className="message-content">
-                    <div className="message-header">
-                      <span className="message-name">{message.name}</span>
-                      <span className="message-time">
-                        <Clock size={14} />
-                        {formatDate(message.created_at)}
-                      </span>
+            {recentMessages.length === 0 ? (
+              <div className="empty-state">
+                <Mail size={48} />
+                <p>Keine Nachrichten vorhanden</p>
+              </div>
+            ) : (
+              <div className="items-list">
+                {recentMessages.map((message, index) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + index * 0.05 }}
+                    className={`list-item ${!message.is_read ? 'highlight' : ''}`}
+                  >
+                    <div className="item-icon">
+                      {message.is_read ? <MailOpen size={20} /> : <Mail size={20} />}
                     </div>
-                    <div className="message-email">{message.email}</div>
-                    <div className="message-preview">
-                      {message.message.substring(0, 100)}
-                      {message.message.length > 100 ? '...' : ''}
+                    <div className="item-content">
+                      <div className="item-header">
+                        <span className="item-title">{message.name}</span>
+                        <span className="item-meta">
+                          <Clock size={14} />
+                          {formatDate(message.created_at)}
+                        </span>
+                      </div>
+                      <div className="item-subtitle">{message.email}</div>
+                      <div className="item-preview">
+                        {message.message.substring(0, 60)}...
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Recent Bookings */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="recent-section"
+          >
+            <div className="section-header">
+              <h2>Aktuelle Buchungen</h2>
+              <Link to="/admin/bookings" className="view-all-link">
+                Alle ansehen <ArrowRight size={16} />
+              </Link>
             </div>
-          )}
-        </motion.div>
+
+            {recentBookings.length === 0 ? (
+              <div className="empty-state">
+                <Calendar size={48} />
+                <p>Keine Buchungen vorhanden</p>
+              </div>
+            ) : (
+              <div className="items-list">
+                {recentBookings.map((booking, index) => (
+                  <motion.div
+                    key={booking.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.05 }}
+                    className={`list-item ${booking.status === 'pending' ? 'highlight' : ''}`}
+                  >
+                    <div className="item-icon">
+                      <Calendar size={20} />
+                    </div>
+                    <div className="item-content">
+                      <div className="item-header">
+                        <span className="item-title">{booking.service || 'Termin'}</span>
+                        <span className="item-meta">
+                          {formatFutureDate(booking.date)}
+                        </span>
+                      </div>
+                      <div className="item-subtitle">{booking.name}</div>
+                      <div className="status-pill" data-status={booking.status}>
+                        {booking.status === 'confirmed' ? 'Bestätigt' : booking.status === 'cancelled' ? 'Storniert' : 'Offen'}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </div>
       </div>
 
       <style>{`
@@ -237,7 +342,7 @@ const AdminDashboard = () => {
 
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
           gap: var(--space-6);
           margin-bottom: var(--space-8);
         }
@@ -254,193 +359,78 @@ const AdminDashboard = () => {
           transition: all var(--transition-normal);
         }
 
-        .stat-card:hover {
-          box-shadow: var(--shadow-xl);
-          transform: translateY(-4px);
-        }
+        .stat-card:hover { box-shadow: var(--shadow-xl); transform: translateY(-4px); }
 
         .stat-icon {
-          width: 64px;
-          height: 64px;
-          border-radius: var(--radius-lg);
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          width: 56px; height: 56px; border-radius: var(--radius-lg);
+          display: flex; align-items: center; justify-content: center;
         }
 
-        .stat-content {
-          flex: 1;
+        .stat-content { flex: 1; }
+        .stat-label { font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: var(--color-primary); }
+
+        .dashboard-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
         }
 
-        .stat-label {
-          font-size: 0.9rem;
-          color: var(--color-text-muted);
-          margin-bottom: 0.25rem;
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .stat-value {
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: var(--color-primary);
-        }
-
-        .recent-messages-section {
+        .recent-section {
           background: white;
           border-radius: var(--radius-xl);
-          padding: var(--space-8);
+          padding: var(--space-6);
           box-shadow: var(--shadow-sm);
         }
 
         .section-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: var(--space-6);
+          display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
         }
-
-        .section-header h2 {
-          font-size: var(--text-xl);
-          font-weight: 700;
-          color: var(--color-primary);
-          margin: 0;
-        }
+        .section-header h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-primary); margin: 0; }
 
         .view-all-link {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: var(--color-secondary);
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 0.95rem;
-          transition: gap 0.2s ease;
+          display: flex; align-items: center; gap: 0.5rem; color: var(--color-secondary);
+          text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: gap 0.2s ease;
         }
+        .view-all-link:hover { gap: 0.75rem; color: var(--color-primary); }
 
-        .view-all-link:hover {
-          gap: 0.75rem;
-          color: var(--color-primary);
+        .empty-state { text-align: center; padding: 2rem; color: var(--color-text-muted); }
+        .empty-state svg { margin-bottom: 1rem; opacity: 0.5; }
+
+        .items-list { display: flex; flex-direction: column; gap: 1rem; }
+
+        .list-item {
+          display: flex; gap: 1rem; padding: 1rem; border-radius: var(--radius-lg);
+          border: 1px solid var(--color-border); transition: all var(--transition-fast);
         }
+        .list-item:hover { background: var(--color-bg-subtle); border-color: var(--color-primary-lighter); }
+        .list-item.highlight { background: rgba(79, 70, 229, 0.03); border-color: rgba(79, 70, 229, 0.15); }
 
-        .empty-state {
-          text-align: center;
-          padding: 3rem 2rem;
-          color: var(--color-text-muted);
+        .item-icon {
+          width: 40px; height: 40px; background: var(--color-bg-subtle); border-radius: var(--radius-md);
+          display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); flex-shrink: 0;
         }
+        .list-item.highlight .item-icon { background: var(--color-secondary); color: white; }
 
-        .empty-state svg {
-          margin-bottom: 1rem;
-          opacity: 0.5;
+        .item-content { flex: 1; min-width: 0; }
+        .item-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+        .item-title { font-weight: 600; color: var(--color-primary); font-size: 0.95rem; }
+        .item-meta { font-size: 0.75rem; color: var(--color-text-muted); }
+        .item-subtitle { font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem; }
+        .item-preview { font-size: 0.85rem; color: var(--color-text-main); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .status-pill {
+            display: inline-block; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 600; text-transform: uppercase;
         }
+        .status-pill[data-status="confirmed"] { background: #dcfce7; color: #166534; }
+        .status-pill[data-status="cancelled"] { background: #fee2e2; color: #991b1b; }
+        .status-pill[data-status="pending"] { background: #fef9c3; color: #854d0e; }
 
-        .messages-list {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-4);
+        @media (max-width: 1024px) {
+          .dashboard-content-grid { grid-template-columns: 1fr; }
         }
-
-        .message-item {
-          display: flex;
-          gap: var(--space-4);
-          padding: var(--space-4);
-          border-radius: var(--radius-lg);
-          border: 1px solid var(--color-border);
-          transition: all var(--transition-fast);
-        }
-
-        .message-item:hover {
-          background: var(--color-bg-subtle);
-          border-color: var(--color-primary-lighter);
-        }
-
-        .message-item.unread {
-          background: rgba(79, 70, 229, 0.05); /* Very light indigo */
-          border-color: rgba(79, 70, 229, 0.2);
-        }
-
-        .message-icon {
-          width: 48px;
-          height: 48px;
-          background: var(--color-bg-subtle);
-          border-radius: var(--radius-md);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--color-text-muted);
-          flex-shrink: 0;
-        }
-
-        .message-item.unread .message-icon {
-          background: var(--color-secondary);
-          color: white;
-        }
-
-        .message-content {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .message-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 0.25rem;
-          gap: 1rem;
-        }
-
-        .message-name {
-          font-weight: 600;
-          color: var(--color-primary);
-          font-size: 1rem;
-        }
-
-        .message-time {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-          font-size: 0.8rem;
-          color: var(--color-text-muted);
-          flex-shrink: 0;
-        }
-
-        .message-email {
-          font-size: 0.85rem;
-          color: var(--color-text-muted);
-          margin-bottom: 0.5rem;
-        }
-
-        .message-preview {
-          font-size: 0.95rem;
-          color: var(--color-text-main);
-          line-height: 1.5;
-        }
-
         @media (max-width: 768px) {
-          .dashboard-header h1 {
-            font-size: 1.5rem;
-          }
-
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .stat-value {
-            font-size: 2rem;
-          }
-
-          .message-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.25rem;
-          }
-
-          .section-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-          }
+          .stats-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </AdminLayout>
