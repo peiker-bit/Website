@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 // Configuration for the SECONDARY Supabase project (Booking Tool)
 const bookingSupabaseUrl = import.meta.env.VITE_BOOKING_SUPABASE_URL;
 const bookingSupabaseKey = import.meta.env.VITE_BOOKING_SUPABASE_ANON_KEY;
-const COLLECTION_NAME = 'appointments'; // Change this if table name differs
+const COLLECTION_NAME = 'bookings'; // Change this if table name differs
 
 // Create a separate client instance
 let bookingSupabase = null;
@@ -20,18 +20,33 @@ export const subscribeToBookings = (callback) => {
         return () => { };
     }
 
+    // Map DB fields to UI fields
+    const mapBooking = (b) => ({
+        ...b,
+        id: b.id,
+        name: b.customer_name || 'Unbekannt',
+        email: b.customer_email || '',
+        phone: b.customer_phone || '',
+        message: b.customer_message || '',
+        service: b.type ? b.type.charAt(0).toUpperCase() + b.type.slice(1) : 'Termin',
+        date: b.start_time,
+        time: b.start_time ? new Date(b.start_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : '',
+        status: b.status || 'pending',
+        createdAt: b.created_at
+    });
+
     // Initial fetch
     const fetchBookings = async () => {
         const { data, error } = await bookingSupabase
             .from(COLLECTION_NAME)
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('start_time', { ascending: false });
 
         if (error) {
             console.error("Error fetching bookings:", error);
             return;
         }
-        callback(data || []);
+        callback((data || []).map(mapBooking));
     };
 
     fetchBookings();
@@ -39,8 +54,7 @@ export const subscribeToBookings = (callback) => {
     // Realtime subscription
     const subscription = bookingSupabase
         .channel('booking-updates')
-        .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTION_NAME }, (payload) => {
-            // On any change, just refetch for simplicity (or handle payload for granular updates)
+        .on('postgres_changes', { event: '*', schema: 'public', table: COLLECTION_NAME }, () => {
             fetchBookings();
         })
         .subscribe();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle } from 'lucide-react';
+import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle, Users } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { subscribeToBookings } from '../../lib/bookingClient';
 import AdminLayout from './AdminLayout';
@@ -127,30 +127,34 @@ const AdminDashboard = () => {
     {
       label: 'Nachrichten',
       value: stats.totalMessages,
+      subValue: `${stats.todayMessages} heute`,
       icon: <Mail size={24} />,
-      color: 'var(--color-secondary)',
-      bgColor: '#eff6ff',
+      gradient: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+      shadow: '0 10px 20px -5px rgba(59, 130, 246, 0.4)'
     },
     {
       label: 'Ungelesen',
       value: stats.unreadMessages,
+      subValue: 'Handlungsbedarf',
       icon: <MailOpen size={24} />,
-      color: 'var(--color-cta)',
-      bgColor: '#fff7ed',
+      gradient: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+      shadow: '0 10px 20px -5px rgba(249, 115, 22, 0.4)'
     },
     {
-      label: 'Buchungen',
+      label: 'Alle Buchungen',
       value: stats.totalBookings,
+      subValue: `${stats.todayBookings} heute`,
       icon: <Calendar size={24} />,
-      color: '#8b5cf6', // Violet
-      bgColor: '#f5f3ff',
+      gradient: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+      shadow: '0 10px 20px -5px rgba(139, 92, 246, 0.4)'
     },
     {
-      label: 'Kommende Termine',
+      label: 'Kommend',
       value: stats.upcomingBookings,
+      subValue: 'Nächste 7 Tage',
       icon: <Clock size={24} />,
-      color: '#10b981', // Emerald
-      bgColor: '#ecfdf5',
+      gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+      shadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)'
     }
   ];
 
@@ -169,6 +173,7 @@ const AdminDashboard = () => {
             justify-content: center;
             gap: 1.5rem;
             min-height: 50vh;
+            color: var(--color-text-muted);
           }
           .spin-icon {
             color: var(--color-secondary);
@@ -187,8 +192,14 @@ const AdminDashboard = () => {
     <AdminLayout>
       <div className="dashboard-container">
         <div className="dashboard-header">
-          <h1>Dashboard</h1>
-          <p>Willkommen zurück! Hier ist eine Übersicht Ihrer Nachrichten und Termine.</p>
+          <div>
+            <h1>Dashboard</h1>
+            <p className="subtitle">Eine Übersicht Ihrer aktuellen Aktivitäten.</p>
+          </div>
+          <div className="date-badge">
+            <Calendar size={16} />
+            {new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -200,14 +211,14 @@ const AdminDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               className="stat-card"
-              style={{ borderLeftColor: stat.color }}
             >
-              <div className="stat-icon" style={{ background: stat.bgColor, color: stat.color }}>
-                {stat.icon}
-              </div>
               <div className="stat-content">
-                <div className="stat-label">{stat.label}</div>
                 <div className="stat-value">{stat.value}</div>
+                <div className="stat-label">{stat.label}</div>
+                <div className="stat-sub">{stat.subValue}</div>
+              </div>
+              <div className="stat-icon-wrapper" style={{ background: stat.gradient, boxShadow: stat.shadow }}>
+                {stat.icon}
               </div>
             </motion.div>
           ))}
@@ -219,50 +230,55 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="recent-section"
+            className="content-card"
           >
-            <div className="section-header">
-              <h2>Aktuelle Nachrichten</h2>
+            <div className="card-header">
+              <div className="header-title-group">
+                <div className="icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                  <Mail size={18} />
+                </div>
+                <h2>Aktuelle Nachrichten</h2>
+              </div>
               <Link to="/admin/messages" className="view-all-link">
                 Alle ansehen <ArrowRight size={16} />
               </Link>
             </div>
 
-            {recentMessages.length === 0 ? (
-              <div className="empty-state">
-                <Mail size={48} />
-                <p>Keine Nachrichten vorhanden</p>
-              </div>
-            ) : (
-              <div className="items-list">
-                {recentMessages.map((message, index) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + index * 0.05 }}
-                    className={`list-item ${!message.is_read ? 'highlight' : ''}`}
-                  >
-                    <div className="item-icon">
-                      {message.is_read ? <MailOpen size={20} /> : <Mail size={20} />}
-                    </div>
-                    <div className="item-content">
-                      <div className="item-header">
-                        <span className="item-title">{message.name}</span>
-                        <span className="item-meta">
-                          <Clock size={14} />
-                          {formatDate(message.created_at)}
-                        </span>
+            <div className="content-body">
+              {recentMessages.length === 0 ? (
+                <div className="empty-state">
+                  <Mail size={40} />
+                  <p>Keine Nachrichten</p>
+                </div>
+              ) : (
+                <div className="items-list">
+                  {recentMessages.map((message, index) => (
+                    <motion.div
+                      key={message.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.05 }}
+                      className={`list-item ${!message.is_read ? 'unread' : ''}`}
+                    >
+                      <div className="list-item-avatar">
+                        {message.name.charAt(0)}
                       </div>
-                      <div className="item-subtitle">{message.email}</div>
-                      <div className="item-preview">
-                        {message.message.substring(0, 60)}...
+                      <div className="list-item-content">
+                        <div className="list-item-top">
+                          <span className="list-item-title">{message.name}</span>
+                          <span className="list-item-time">{formatDate(message.created_at)}</span>
+                        </div>
+                        <div className="list-item-subtitle">{message.email}</div>
+                        <div className="list-item-preview">
+                          {message.message.substring(0, 60)}{message.message.length > 60 ? '...' : ''}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+                      {!message.is_read && <div className="unread-dot"></div>}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
 
           {/* Recent Bookings */}
@@ -270,49 +286,57 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="recent-section"
+            className="content-card"
           >
-            <div className="section-header">
-              <h2>Aktuelle Buchungen</h2>
+            <div className="card-header">
+              <div className="header-title-group">
+                <div className="icon-box" style={{ background: '#f5f3ff', color: '#8b5cf6' }}>
+                  <Calendar size={18} />
+                </div>
+                <h2>Aktuelle Buchungen</h2>
+              </div>
               <Link to="/admin/bookings" className="view-all-link">
                 Alle ansehen <ArrowRight size={16} />
               </Link>
             </div>
 
-            {recentBookings.length === 0 ? (
-              <div className="empty-state">
-                <Calendar size={48} />
-                <p>Keine Buchungen vorhanden</p>
-              </div>
-            ) : (
-              <div className="items-list">
-                {recentBookings.map((booking, index) => (
-                  <motion.div
-                    key={booking.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.05 }}
-                    className={`list-item ${booking.status === 'pending' ? 'highlight' : ''}`}
-                  >
-                    <div className="item-icon">
-                      <Calendar size={20} />
-                    </div>
-                    <div className="item-content">
-                      <div className="item-header">
-                        <span className="item-title">{booking.service || 'Termin'}</span>
-                        <span className="item-meta">
+            <div className="content-body">
+              {recentBookings.length === 0 ? (
+                <div className="empty-state">
+                  <Calendar size={40} />
+                  <p>Keine Buchungen</p>
+                </div>
+              ) : (
+                <div className="items-list">
+                  {recentBookings.map((booking, index) => (
+                    <motion.div
+                      key={booking.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.05 }}
+                      className="list-item"
+                    >
+                      <div className={`list-item-icon-status ${booking.status}`}>
+                        <Calendar size={16} />
+                      </div>
+                      <div className="list-item-content">
+                        <div className="list-item-top">
+                          <span className="list-item-title">{booking.service || 'Termin'}</span>
+                          <span className="status-badge" data-status={booking.status}>
+                            {booking.status === 'confirmed' ? 'Bestätigt' : booking.status === 'cancelled' ? 'Storniert' : 'Offen'}
+                          </span>
+                        </div>
+                        <div className="list-item-subtitle">{booking.name}</div>
+                        <div className="list-item-preview">
+                          <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />
                           {formatFutureDate(booking.date)}
-                        </span>
+                        </div>
                       </div>
-                      <div className="item-subtitle">{booking.name}</div>
-                      <div className="status-pill" data-status={booking.status}>
-                        {booking.status === 'confirmed' ? 'Bestätigt' : booking.status === 'cancelled' ? 'Storniert' : 'Offen'}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>
@@ -324,25 +348,45 @@ const AdminDashboard = () => {
         }
 
         .dashboard-header {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
           margin-bottom: var(--space-8);
+          padding-bottom: var(--space-6);
+          border-bottom: 1px solid var(--color-border);
         }
 
         .dashboard-header h1 {
-          font-size: var(--text-3xl);
-          font-weight: 700;
+          font-size: 2.5rem;
+          font-weight: 800;
           color: var(--color-primary);
-          margin-bottom: var(--space-2);
-          font-family: var(--font-heading);
+          margin-bottom: 0.5rem;
+          line-height: 1;
         }
 
-        .dashboard-header p {
+        .subtitle {
           color: var(--color-text-muted);
-          font-size: var(--text-lg);
+          font-size: 1.1rem;
         }
 
+        .date-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: white;
+          padding: 0.5rem 1rem;
+          border-radius: var(--radius-full);
+          border: 1px solid var(--color-border);
+          color: var(--color-text-muted);
+          font-size: 0.9rem;
+          font-weight: 500;
+          box-shadow: var(--shadow-sm);
+        }
+
+        /* Stats Grid */
         .stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
           gap: var(--space-6);
           margin-bottom: var(--space-8);
         }
@@ -350,87 +394,273 @@ const AdminDashboard = () => {
         .stat-card {
           background: white;
           border-radius: var(--radius-xl);
-          padding: var(--space-6);
-          box-shadow: var(--shadow-sm);
-          border-left: 4px solid;
+          padding: 1.5rem;
+          box-shadow: var(--shadow-md);
           display: flex;
           align-items: center;
-          gap: var(--space-6);
-          transition: all var(--transition-normal);
+          justify-content: space-between;
+          transition: all 0.3s ease;
+          border: 1px solid transparent;
+          position: relative;
+          overflow: hidden;
         }
 
-        .stat-card:hover { box-shadow: var(--shadow-xl); transform: translateY(-4px); }
-
-        .stat-icon {
-          width: 56px; height: 56px; border-radius: var(--radius-lg);
-          display: flex; align-items: center; justify-content: center;
+        .stat-card:hover {
+          transform: translateY(-5px);
+          box-shadow: var(--shadow-xl);
         }
 
-        .stat-content { flex: 1; }
-        .stat-label { font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem; font-weight: 600; text-transform: uppercase; }
-        .stat-value { font-size: 2rem; font-weight: 700; color: var(--color-primary); }
+        .stat-content {
+          z-index: 1;
+        }
 
+        .stat-value {
+          font-size: 2.5rem;
+          font-weight: 800;
+          color: var(--color-primary);
+          line-height: 1;
+          margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: var(--color-text-muted);
+          margin-bottom: 0.25rem;
+        }
+
+        .stat-sub {
+          font-size: 0.8rem;
+          color: var(--color-accent);
+          font-weight: 500;
+        }
+
+        .stat-icon-wrapper {
+          width: 50px;
+          height: 50px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 1.2rem;
+        }
+
+        /* Content Grid */
         .dashboard-content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          gap: 2rem;
         }
 
-        .recent-section {
+        .content-card {
           background: white;
           border-radius: var(--radius-xl);
-          padding: var(--space-6);
+          box-shadow: var(--shadow-md);
+          border: 1px solid var(--color-border);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          height: 100%;
+        }
+
+        .card-header {
+          padding: 1.5rem;
+          border-bottom: 1px solid var(--color-bg-subtle);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: #fcfcfc;
+        }
+
+        .header-title-group {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .icon-box {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .card-header h2 {
+          font-size: 1.25rem;
+          margin: 0;
+          color: var(--color-primary);
+        }
+
+        .view-all-link {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: var(--color-text-muted);
+          transition: color 0.2s;
+        }
+
+        .view-all-link:hover {
+          color: var(--color-secondary);
+        }
+
+        .content-body {
+          padding: 1.5rem;
+          flex: 1;
+          background: white;
+        }
+
+        .items-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+
+        .list-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border-radius: 12px;
+          border: 1px solid var(--color-bg-subtle);
+          transition: all 0.2s;
+          background: #fafafa;
+          position: relative;
+        }
+
+        .list-item:hover {
+          background: white;
+          border-color: var(--color-accent-light);
           box-shadow: var(--shadow-sm);
         }
 
-        .section-header {
-          display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
+        .list-item.unread {
+          background: #eff6ff;
+          border-color: #dbeafe;
         }
-        .section-header h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-primary); margin: 0; }
 
-        .view-all-link {
-          display: flex; align-items: center; gap: 0.5rem; color: var(--color-secondary);
-          text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: gap 0.2s ease;
+        .list-item-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: var(--gradient-primary);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 1rem;
+          flex-shrink: 0;
         }
-        .view-all-link:hover { gap: 0.75rem; color: var(--color-primary); }
 
-        .empty-state { text-align: center; padding: 2rem; color: var(--color-text-muted); }
-        .empty-state svg { margin-bottom: 1rem; opacity: 0.5; }
-
-        .items-list { display: flex; flex-direction: column; gap: 1rem; }
-
-        .list-item {
-          display: flex; gap: 1rem; padding: 1rem; border-radius: var(--radius-lg);
-          border: 1px solid var(--color-border); transition: all var(--transition-fast);
+        .list-item-icon-status {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
         }
-        .list-item:hover { background: var(--color-bg-subtle); border-color: var(--color-primary-lighter); }
-        .list-item.highlight { background: rgba(79, 70, 229, 0.03); border-color: rgba(79, 70, 229, 0.15); }
+        
+        .list-item-icon-status.confirmed { background: #ecfdf5; color: #059669; }
+        .list-item-icon-status.pending { background: #fffbeb; color: #d97706; }
+        .list-item-icon-status.cancelled { background: #fef2f2; color: #dc2626; }
 
-        .item-icon {
-          width: 40px; height: 40px; background: var(--color-bg-subtle); border-radius: var(--radius-md);
-          display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); flex-shrink: 0;
+        .list-item-content {
+          flex: 1;
+          min-width: 0;
         }
-        .list-item.highlight .item-icon { background: var(--color-secondary); color: white; }
 
-        .item-content { flex: 1; min-width: 0; }
-        .item-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
-        .item-title { font-weight: 600; color: var(--color-primary); font-size: 0.95rem; }
-        .item-meta { font-size: 0.75rem; color: var(--color-text-muted); }
-        .item-subtitle { font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.25rem; }
-        .item-preview { font-size: 0.85rem; color: var(--color-text-main); line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .status-pill {
-            display: inline-block; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 600; text-transform: uppercase;
+        .list-item-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 0.25rem;
         }
-        .status-pill[data-status="confirmed"] { background: #dcfce7; color: #166534; }
-        .status-pill[data-status="cancelled"] { background: #fee2e2; color: #991b1b; }
-        .status-pill[data-status="pending"] { background: #fef9c3; color: #854d0e; }
 
-        @media (max-width: 1024px) {
-          .dashboard-content-grid { grid-template-columns: 1fr; }
+        .list-item-title {
+          font-weight: 700;
+          color: var(--color-primary);
+          font-size: 0.95rem;
         }
+
+        .list-item-time {
+          font-size: 0.75rem;
+          color: var(--color-text-muted);
+        }
+
+        .list-item-subtitle {
+          font-size: 0.85rem;
+          color: var(--color-text-muted);
+          margin-bottom: 0.25rem;
+        }
+
+        .list-item-preview {
+          font-size: 0.85rem;
+          color: var(--color-text-main);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          opacity: 0.9;
+        }
+
+        .unread-dot {
+          width: 8px;
+          height: 8px;
+          background: var(--color-cta);
+          border-radius: 50%;
+          margin-left: 0.5rem;
+        }
+
+        .status-badge {
+          font-size: 0.7rem;
+          font-weight: 700;
+          padding: 0.2rem 0.5rem;
+          border-radius: 6px;
+          text-transform: uppercase;
+        }
+
+        .status-badge[data-status="confirmed"] { background: #d1fae5; color: #065f46; }
+        .status-badge[data-status="pending"] { background: #fef3c7; color: #92400e; }
+        .status-badge[data-status="cancelled"] { background: #fee2e2; color: #b91c1c; }
+
+        .empty-state {
+          text-align: center;
+          padding: 3rem 1rem;
+          color: var(--color-text-muted);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        .empty-state svg {
+          opacity: 0.2;
+        }
+
         @media (max-width: 768px) {
-          .stats-grid { grid-template-columns: 1fr; }
+          .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+          }
+          
+          .dashboard-content-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .stat-card {
+            padding: 1.25rem;
+          }
+          
+          .stat-value {
+            font-size: 2rem;
+          }
         }
       `}</style>
     </AdminLayout>

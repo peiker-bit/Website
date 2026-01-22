@@ -48,7 +48,7 @@ const Hero = () => {
                         className="hero-actions"
                     >
                         <motion.a
-                            href="https://terminbuchung-three.vercel.app/buchen"
+                            href="https://termine.peiker-steuer.de"
                             className="btn btn-primary"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

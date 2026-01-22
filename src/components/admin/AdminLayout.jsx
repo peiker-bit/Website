@@ -119,7 +119,7 @@ const AdminLayout = ({ children }) => {
 
         .admin-sidebar {
           width: 280px;
-          background: var(--color-primary);
+          background: var(--gradient-primary); /* Gradient background */
           color: white;
           display: flex;
           flex-direction: column;
@@ -130,6 +130,7 @@ const AdminLayout = ({ children }) => {
           z-index: 100;
           transition: transform var(--transition-normal);
           border-right: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: var(--shadow-xl);
         }
 
         .sidebar-header {
@@ -138,6 +139,7 @@ const AdminLayout = ({ children }) => {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          background: rgba(0,0,0,0.1);
         }
 
         .logo {
@@ -162,6 +164,7 @@ const AdminLayout = ({ children }) => {
           font-weight: 700;
           font-family: var(--font-heading);
           letter-spacing: -0.02em;
+          color: white;
         }
 
         .close-mobile-menu {
@@ -175,36 +178,41 @@ const AdminLayout = ({ children }) => {
 
         .sidebar-nav {
           flex: 1;
-          padding: 1.5rem 0;
+          padding: 1.5rem 1rem; /* Added padding for floating effect */
           overflow-y: auto;
           display: flex;
           flex-direction: column;
-          gap: var(--space-1);
+          gap: 0.5rem;
         }
 
         .nav-item {
           display: flex;
           align-items: center;
           gap: 1rem;
-          padding: 1rem 1.5rem;
+          padding: 0.875rem 1.25rem;
           color: rgba(255, 255, 255, 0.7);
           text-decoration: none;
           transition: all var(--transition-fast);
-          border-left: 3px solid transparent;
+          border-radius: var(--radius-lg); /* Rounded items */
           font-weight: 500;
           font-size: 0.95rem;
+          position: relative;
         }
 
         .nav-item:hover {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255, 255, 255, 0.1);
           color: white;
+          transform: translateX(4px);
         }
 
         .nav-item.active {
-          background: rgba(255, 255, 255, 0.1);
+          background: var(--color-accent); /* Active state pop */
+          background: linear-gradient(90deg, var(--color-accent) 0%, var(--color-secondary) 100%);
           color: white;
-          border-left-color: var(--color-accent);
+          box-shadow: var(--shadow-md);
         }
+
+        /* Removed left border for a cleaner pill/card look */
 
         .sidebar-footer {
           padding: 1.5rem;
@@ -226,7 +234,7 @@ const AdminLayout = ({ children }) => {
         .user-avatar {
           width: 36px;
           height: 36px;
-          background: var(--color-secondary);
+          background: rgba(255,255,255,0.2);
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -286,8 +294,8 @@ const AdminLayout = ({ children }) => {
         }
 
         .admin-header {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(10px);
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(12px); /* Glass header */
           padding: 1rem 2rem;
           box-shadow: var(--shadow-sm);
           display: flex;
@@ -296,7 +304,7 @@ const AdminLayout = ({ children }) => {
           position: sticky;
           top: 0;
           z-index: 50;
-          border-bottom: 1px solid var(--color-border);
+          border-bottom: 1px solid rgba(226, 232, 240, 0.6);
         }
 
         .mobile-menu-toggle {
@@ -331,14 +339,20 @@ const AdminLayout = ({ children }) => {
 
         .admin-content {
           flex: 1;
-          padding: var(--space-6);
+          padding: var(--space-8);
           max-width: 1600px;
           width: 100%;
           margin: 0 auto;
+          animation: fadeUp 0.4s ease-out;
         }
 
         .mobile-overlay {
           display: none;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 968px) {
