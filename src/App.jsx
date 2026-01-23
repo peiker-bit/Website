@@ -17,7 +17,7 @@ import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import MessageList from './components/admin/MessageList';
 import BookingList from './components/admin/BookingList';
-import EmailSettings from './components/admin/EmailSettings';
+import Settings from './components/admin/Settings';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 function App() {
@@ -41,6 +41,13 @@ function App() {
             </>
           } />
           <Route path="/lohn" element={
+            <>
+              <Header />
+              <main><Payroll /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/lohnabrechnung" element={
             <>
               <Header />
               <main><Payroll /></main>
@@ -109,7 +116,7 @@ function App() {
           } />
           <Route path="/admin/settings" element={
             <ProtectedRoute>
-              <EmailSettings />
+              <Settings />
             </ProtectedRoute>
           } />
         </Routes>

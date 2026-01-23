@@ -4,7 +4,7 @@ import { Mail, Save, Loader2, CheckCircle, AlertCircle, Info } from 'lucide-reac
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from './AdminLayout';
 
-const EmailSettings = () => {
+const EmailSettings = ({ embedded = false }) => {
   const [notificationEmail, setNotificationEmail] = useState('');
   const [originalEmail, setOriginalEmail] = useState('');
   const [loading, setLoading] = useState(true);
@@ -110,149 +110,137 @@ const EmailSettings = () => {
 
   const hasChanges = notificationEmail !== originalEmail;
 
-  if (loading) {
-    return (
-      <AdminLayout>
-        <div className="settings-loading">
-          <Loader2 size={48} className="spin-icon" />
-          <p>Einstellungen werden geladen...</p>
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  return (
-    <AdminLayout>
-      <div className="settings-container">
+  const content = (
+    <div className={embedded ? "" : "settings-container"}>
+      {!embedded && (
         <div className="settings-header">
           <h1>Einstellungen</h1>
           <p>Verwalten Sie die Konfiguration für Kontaktformular-Benachrichtigungen</p>
         </div>
+      )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="settings-card"
-        >
-          <div className="card-header">
-            <div className="card-icon">
-              <Mail size={24} />
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="settings-card"
+      >
+        <div className="card-header">
+          <div className="card-icon">
+            <Mail size={24} />
+          </div>
+          <div>
+            <h2>Benachrichtigungs-E-Mail</h2>
+            <p>Diese E-Mail-Adresse erhält Benachrichtigungen über neue Kontaktformular-Nachrichten</p>
+          </div>
+        </div>
+
+        <div className="card-body">
+          {/* Info Alert */}
+          <div className="info-alert">
+            <Info size={20} />
             <div>
-              <h2>Benachrichtigungs-E-Mail</h2>
-              <p>Diese E-Mail-Adresse erhält Benachrichtigungen über neue Kontaktformular-Nachrichten</p>
+              <strong>Wichtig:</strong> Stellen Sie sicher, dass diese E-Mail-Adresse in Microsoft Graph konfiguriert ist und Senderechte besitzt.
             </div>
           </div>
 
-          <div className="card-body">
-            {/* Info Alert */}
-            <div className="info-alert">
-              <Info size={20} />
-              <div>
-                <strong>Wichtig:</strong> Stellen Sie sicher, dass diese E-Mail-Adresse in Microsoft Graph konfiguriert ist und Senderechte besitzt.
-              </div>
+          {/* Email Input */}
+          <div className="form-group">
+            <label htmlFor="notificationEmail">E-Mail-Adresse</label>
+            <div className="input-with-icon">
+              <Mail size={20} />
+              <input
+                type="email"
+                id="notificationEmail"
+                value={notificationEmail}
+                onChange={(e) => {
+                  setNotificationEmail(e.target.value);
+                  if (status === 'error') {
+                    setStatus('idle');
+                    setErrorMessage('');
+                  }
+                }}
+                placeholder="beispiel@domain.de"
+                disabled={saving}
+              />
             </div>
+          </div>
 
-            {/* Email Input */}
-            <div className="form-group">
-              <label htmlFor="notificationEmail">E-Mail-Adresse</label>
-              <div className="input-with-icon">
-                <Mail size={20} />
-                <input
-                  type="email"
-                  id="notificationEmail"
-                  value={notificationEmail}
-                  onChange={(e) => {
-                    setNotificationEmail(e.target.value);
-                    if (status === 'error') {
-                      setStatus('idle');
-                      setErrorMessage('');
-                    }
-                  }}
-                  placeholder="beispiel@domain.de"
-                  disabled={saving}
-                />
-              </div>
-            </div>
-
-            {/* Status Messages */}
-            {status === 'success' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="success-message"
-              >
-                <CheckCircle size={20} />
-                <span>Einstellungen erfolgreich gespeichert!</span>
-              </motion.div>
-            )}
-
-            {status === 'error' && errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="error-message"
-              >
-                <AlertCircle size={20} />
-                <span>{errorMessage}</span>
-              </motion.div>
-            )}
-
-            {/* Save Button */}
-            <motion.button
-              className="save-btn"
-              onClick={handleSave}
-              disabled={saving || !hasChanges}
-              whileHover={{ scale: saving || !hasChanges ? 1 : 1.02 }}
-              whileTap={{ scale: saving || !hasChanges ? 1 : 0.98 }}
+          {/* Status Messages */}
+          {status === 'success' && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="success-message"
             >
-              {saving ? (
-                <>
-                  <Loader2 size={20} className="spin-icon" />
-                  Wird gespeichert...
-                </>
-              ) : (
-                <>
-                  <Save size={20} />
-                  Änderungen speichern
-                </>
-              )}
-            </motion.button>
+              <CheckCircle size={20} />
+              <span>Einstellungen erfolgreich gespeichert!</span>
+            </motion.div>
+          )}
 
-            {hasChanges && !saving && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="unsaved-changes"
-              >
-                Sie haben ungespeicherte Änderungen
-              </motion.p>
+          {status === 'error' && errorMessage && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="error-message"
+            >
+              <AlertCircle size={20} />
+              <span>{errorMessage}</span>
+            </motion.div>
+          )}
+
+          {/* Save Button */}
+          <motion.button
+            className="save-btn"
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            whileHover={{ scale: saving || !hasChanges ? 1 : 1.02 }}
+            whileTap={{ scale: saving || !hasChanges ? 1 : 0.98 }}
+          >
+            {saving ? (
+              <>
+                <Loader2 size={20} className="spin-icon" />
+                Wird gespeichert...
+              </>
+            ) : (
+              <>
+                <Save size={20} />
+                Änderungen speichern
+              </>
             )}
-          </div>
-        </motion.div>
+          </motion.button>
 
-        {/* Additional Info Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="info-section"
-        >
-          <h3>Wie funktioniert es?</h3>
-          <ul>
-            <li>
-              <strong>Automatische Benachrichtigungen:</strong> Wenn ein Besucher das Kontaktformular ausfüllt, wird die Nachricht in der Datenbank gespeichert und eine E-Mail-Benachrichtigung an die hier angegebene Adresse gesendet.
-            </li>
-            <li>
-              <strong>Microsoft Graph:</strong> Die E-Mails werden über Microsoft Graph API versendet. Stellen Sie sicher, dass die E-Mail-Adresse in Ihrem Microsoft 365-Konto existiert.
-            </li>
-            <li>
-              <strong>Sofortige Wirkung:</strong> Änderungen werden sofort wirksam. Die nächste Kontaktformular-Nachricht wird an die neue E-Mail-Adresse gesendet.
-            </li>
-          </ul>
-        </motion.div>
-      </div>
+          {hasChanges && !saving && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="unsaved-changes"
+            >
+              Sie haben ungespeicherte Änderungen
+            </motion.p>
+          )}
+        </div>
+      </motion.div>
 
+      {/* Additional Info Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="info-section"
+      >
+        <h3>Wie funktioniert es?</h3>
+        <ul>
+          <li>
+            <strong>Automatische Benachrichtigungen:</strong> Wenn ein Besucher das Kontaktformular ausfüllt, wird die Nachricht in der Datenbank gespeichert und eine E-Mail-Benachrichtigung an die hier angegebene Adresse gesendet.
+          </li>
+          <li>
+            <strong>Microsoft Graph:</strong> Die E-Mails werden über Microsoft Graph API versendet. Stellen Sie sicher, dass die E-Mail-Adresse in Ihrem Microsoft 365-Konto existiert.
+          </li>
+          <li>
+            <strong>Sofortige Wirkung:</strong> Änderungen werden sofort wirksam. Die nächste Kontaktformular-Nachricht wird an die neue E-Mail-Adresse gesendet.
+          </li>
+        </ul>
+      </motion.div>
       <style>{`
         .settings-container {
           max-width: 900px;
@@ -533,6 +521,33 @@ const EmailSettings = () => {
           }
         }
       `}</style>
+    </div>
+  );
+
+  if (loading) {
+    if (embedded) {
+      return (
+        <div className="settings-loading">
+          <Loader2 size={48} className="spin-icon" />
+          <p>Einstellungen werden geladen...</p>
+        </div>
+      );
+    }
+    return (
+      <AdminLayout>
+        <div className="settings-loading">
+          <Loader2 size={48} className="spin-icon" />
+          <p>Einstellungen werden geladen...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (embedded) return content;
+
+  return (
+    <AdminLayout>
+      {content}
     </AdminLayout>
   );
 };

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle, Users, X, Phone, User, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { subscribeToBookings } from '../../lib/bookingClient';
+import { subscribeToBookings, updateBookingStatus, cancelBooking } from '../../lib/bookingClient';
 import AdminLayout from './AdminLayout';
 
 const AdminDashboard = () => {
@@ -18,6 +18,12 @@ const AdminDashboard = () => {
   const [recentMessages, setRecentMessages] = useState([]);
   const [recentBookings, setRecentBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal State
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [processingAction, setProcessingAction] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -54,7 +60,8 @@ const AdminDashboard = () => {
 
     const upcoming = bookings.filter(b => {
       const d = b.date?.toDate ? b.date.toDate() : new Date(b.date);
-      return d >= new Date();
+      const isCancelled = b.status === 'cancelled' || b.status === 'canceled';
+      return d >= new Date() && !isCancelled;
     }).length;
 
     setStats(prev => ({
@@ -64,7 +71,18 @@ const AdminDashboard = () => {
       upcomingBookings: upcoming
     }));
 
-    setRecentBookings(bookings.slice(0, 5));
+    // Filter for recent bookings: upcoming and not cancelled
+    const activeBookings = bookings.filter(b => {
+      const d = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+      const isCancelled = b.status === 'cancelled' || b.status === 'canceled';
+      return d >= new Date() && !isCancelled;
+    }).sort((a, b) => {
+      const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
+      const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+      return dateA - dateB;
+    });
+
+    setRecentBookings(activeBookings.slice(0, 5));
   };
 
   const fetchDashboardData = async () => {
@@ -93,12 +111,64 @@ const AdminDashboard = () => {
         todayMessages: today
       }));
 
-      // Get recent 5 messages
-      setRecentMessages(allMessages?.slice(0, 5) || []);
+      // Get unread messages only for the dashboard
+      setRecentMessages(allMessages?.filter(m => !m.is_read).slice(0, 5) || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkAsRead = async (message) => {
+    try {
+      setProcessingAction(true);
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ is_read: true })
+        .eq('id', message.id);
+
+      if (error) throw error;
+
+      // Close modal and refresh text
+      setSelectedMessage(null);
+      // Realtime subscription will handle the refresh, but we can optimistically update
+      setRecentMessages(prev => prev.filter(m => m.id !== message.id));
+      setStats(prev => ({ ...prev, unreadMessages: prev.unreadMessages - 1 }));
+    } catch (err) {
+      console.error("Error marking as read", err);
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
+  const handleCancelBooking = async (booking) => {
+    if (!window.confirm("Möchten Sie diesen Termin wirklich stornieren?")) return;
+
+    try {
+      setProcessingAction(true);
+
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Nicht authentifiziert");
+
+      // Call API to cancel and send email
+      // We import cancelBooking from bookingClient later (need to update imports)
+      await cancelBooking(booking.id, cancellationReason, session.access_token);
+
+      // Optimistic update
+      setRecentBookings(prev => prev.filter(b => b.id !== booking.id));
+      setSelectedBooking(null);
+      setCancellationReason('');
+
+      // Refresh data to be sure
+      fetchDashboardData();
+
+    } catch (err) {
+      console.error("Error cancelling booking", err);
+      alert(`Fehler beim Stornieren: ${err.message}`);
+    } finally {
+      setProcessingAction(false);
     }
   };
 
@@ -237,7 +307,7 @@ const AdminDashboard = () => {
                 <div className="icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>
                   <Mail size={18} />
                 </div>
-                <h2>Aktuelle Nachrichten</h2>
+                <h2>Ungelesene Nachrichten</h2>
               </div>
               <Link to="/admin/messages" className="view-all-link">
                 Alle ansehen <ArrowRight size={16} />
@@ -247,8 +317,8 @@ const AdminDashboard = () => {
             <div className="content-body">
               {recentMessages.length === 0 ? (
                 <div className="empty-state">
-                  <Mail size={40} />
-                  <p>Keine Nachrichten</p>
+                  <MailOpen size={40} />
+                  <p>Keine ungelesenen Nachrichten</p>
                 </div>
               ) : (
                 <div className="items-list">
@@ -258,7 +328,8 @@ const AdminDashboard = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + index * 0.05 }}
-                      className={`list-item ${!message.is_read ? 'unread' : ''}`}
+                      className={`list-item unread clickable`}
+                      onClick={() => setSelectedMessage(message)}
                     >
                       <div className="list-item-avatar">
                         {message.name.charAt(0)}
@@ -273,7 +344,7 @@ const AdminDashboard = () => {
                           {message.message.substring(0, 60)}{message.message.length > 60 ? '...' : ''}
                         </div>
                       </div>
-                      {!message.is_read && <div className="unread-dot"></div>}
+                      <div className="unread-dot"></div>
                     </motion.div>
                   ))}
                 </div>
@@ -293,7 +364,7 @@ const AdminDashboard = () => {
                 <div className="icon-box" style={{ background: '#f5f3ff', color: '#8b5cf6' }}>
                   <Calendar size={18} />
                 </div>
-                <h2>Aktuelle Buchungen</h2>
+                <h2>Anstehende Buchungen</h2>
               </div>
               <Link to="/admin/bookings" className="view-all-link">
                 Alle ansehen <ArrowRight size={16} />
@@ -304,7 +375,7 @@ const AdminDashboard = () => {
               {recentBookings.length === 0 ? (
                 <div className="empty-state">
                   <Calendar size={40} />
-                  <p>Keine Buchungen</p>
+                  <p>Keine anstehenden Buchungen</p>
                 </div>
               ) : (
                 <div className="items-list">
@@ -314,7 +385,8 @@ const AdminDashboard = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 + index * 0.05 }}
-                      className="list-item"
+                      className="list-item clickable"
+                      onClick={() => setSelectedBooking(booking)}
                     >
                       <div className={`list-item-icon-status ${booking.status}`}>
                         <Calendar size={16} />
@@ -340,6 +412,141 @@ const AdminDashboard = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AnimatePresence>
+        {selectedMessage && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="modal-backdrop" onClick={() => setSelectedMessage(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="modal-content" onClick={e => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h2>Nachricht Details</h2>
+                <button onClick={() => setSelectedMessage(null)} className="close-btn"><X size={20} /></button>
+              </div>
+              <div className="modal-body">
+                <div className="detail-row">
+                  <User size={16} className="text-gray-400" />
+                  <div>
+                    <span className="detail-label">Von</span>
+                    <p>{selectedMessage.name} <span className="text-gray-400">&lt;{selectedMessage.email}&gt;</span></p>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <Clock size={16} className="text-gray-400" />
+                  <div>
+                    <span className="detail-label">Gesendet am</span>
+                    <p>{new Date(selectedMessage.created_at).toLocaleString('de-DE')}</p>
+                  </div>
+                </div>
+                <div className="detail-message">
+                  <span className="detail-label">Nachricht</span>
+                  <p>{selectedMessage.message}</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <a href={`mailto:${selectedMessage.email}`} className="btn-secondary">
+                  <Mail size={16} /> Antworten
+                </a>
+                <button
+                  onClick={() => handleMarkAsRead(selectedMessage)}
+                  disabled={processingAction}
+                  className="btn-primary"
+                >
+                  {processingAction ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
+                  Als gelesen markieren
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {selectedBooking && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="modal-backdrop" onClick={() => setSelectedBooking(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+              className="modal-content" onClick={e => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h2>Buchungsdetails</h2>
+                <button onClick={() => setSelectedBooking(null)} className="close-btn"><X size={20} /></button>
+              </div>
+              <div className="modal-body">
+                <div className="detail-row">
+                  <User size={16} className="text-gray-400" />
+                  <div>
+                    <span className="detail-label">Kunde</span>
+                    <p>{selectedBooking.name}</p>
+                    <p className="text-sm text-gray-500">{selectedBooking.email}</p>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <Calendar size={16} className="text-gray-400" />
+                  <div>
+                    <span className="detail-label">Termin</span>
+                    <p>{formatFutureDate(selectedBooking.date)} - {selectedBooking.time}</p>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <MessageSquare size={16} className="text-gray-400" />
+                  <div>
+                    <span className="detail-label">Service</span>
+                    <p>{selectedBooking.service}</p>
+                  </div>
+                </div>
+                {selectedBooking.message && (
+                  <div className="detail-message">
+                    <span className="detail-label">Nachricht</span>
+                    <p>{selectedBooking.message}</p>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer" style={{ flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ width: '100%' }}>
+                  <label className="detail-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Stornierungsgrund (wird an Kunden gesendet)</label>
+                  <textarea
+                    className="reason-input"
+                    value={cancellationReason}
+                    onChange={(e) => setCancellationReason(e.target.value)}
+                    placeholder="Bitte geben Sie einen Grund für die Stornierung an..."
+                    rows="3"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '8px',
+                      border: '1px solid #e2e8f0',
+                      fontFamily: 'inherit',
+                      fontSize: '0.9rem',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', width: '100%' }}>
+                  <button
+                    onClick={() => handleCancelBooking(selectedBooking)}
+                    disabled={processingAction || !cancellationReason.trim()}
+                    className="btn-danger"
+                    title={!cancellationReason.trim() ? "Bitte geben Sie einen Grund an" : ""}
+                  >
+                    {processingAction ? <Loader2 className="animate-spin" size={16} /> : <X size={16} />}
+                    Stornieren & Benachrichtigen
+                  </button>
+                  <button onClick={() => { setSelectedBooking(null); setCancellationReason(''); }} className="btn-secondary">
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence >
 
       <style>{`
         .dashboard-container {
@@ -531,12 +738,16 @@ const AdminDashboard = () => {
           background: #fafafa;
           position: relative;
         }
+        
+        .list-item.clickable { cursor: pointer; }
 
         .list-item:hover {
           background: white;
           border-color: var(--color-accent-light);
           box-shadow: var(--shadow-sm);
         }
+        
+        .list-item.clickable:hover { transform: translateY(-2px); }
 
         .list-item.unread {
           background: #eff6ff;
@@ -642,6 +853,57 @@ const AdminDashboard = () => {
         .empty-state svg {
           opacity: 0.2;
         }
+        
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: white; width: 90%; max-width: 500px;
+            border-radius: var(--radius-xl); box-shadow: var(--shadow-xl);
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 1.5rem; border-bottom: 1px solid var(--color-border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--color-bg-subtle);
+        }
+        
+        .modal-header h2 { font-size: 1.25rem; font-weight: 700; color: var(--color-primary); margin: 0; }
+        .close-btn { background: none; border: none; cursor: pointer; color: var(--color-text-muted); padding: 5px; border-radius: 50%; transition: all 0.2s; }
+        .close-btn:hover { background: rgba(0,0,0,0.1); color: var(--color-text-main); }
+        
+        .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        
+        .detail-row { display: flex; gap: 1rem; align-items: flex-start; }
+        .detail-label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); font-weight: 700; margin-bottom: 0.25rem; }
+        .detail-message { background: var(--color-bg-subtle); padding: 1rem; border-radius: var(--radius-lg); }
+        .detail-message p { margin: 0; white-space: pre-wrap; }
+        
+        .modal-footer {
+            padding: 1.5rem; border-top: 1px solid var(--color-border);
+            display: flex; justify-content: flex-end; gap: 1rem;
+            background: #fafafa;
+        }
+        
+        .btn-primary, .btn-secondary, .btn-danger {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-size: 0.9rem; transition: all 0.2s; text-decoration: none;
+        }
+        
+        .btn-primary { background: var(--color-primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        .btn-secondary { background: white; border: 1px solid var(--color-border); color: var(--color-text-main); }
+        .btn-secondary:hover { background: var(--color-bg-subtle); }
+        
+        .btn-danger { background: #fee2e2; color: #dc2626; }
+        .btn-danger:hover { background: #fca5a5; color: #7f1d1d; }
 
         @media (max-width: 768px) {
           .dashboard-header {
@@ -663,7 +925,7 @@ const AdminDashboard = () => {
           }
         }
       `}</style>
-    </AdminLayout>
+    </AdminLayout >
   );
 };
 

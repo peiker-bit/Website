@@ -235,6 +235,12 @@ const Hero = () => {
           padding: 0 var(--container-padding);
         }
 
+        .hero-content {
+            display: block;
+            margin-bottom: 0;
+            max-width: none;
+        }
+
         .badge {
           display: inline-flex;
           align-items: center;
@@ -281,12 +287,15 @@ const Hero = () => {
           margin-bottom: 2.5rem;
           max-width: 540px;
           line-height: 1.6;
+          margin-left: 0;
+          margin-right: 0;
         }
 
         .hero-actions {
           display: flex;
           gap: 1rem;
           margin-bottom: 3rem;
+          justify-content: flex-start;
         }
 
         .hero-trust {
@@ -294,6 +303,7 @@ const Hero = () => {
           gap: 2rem;
           padding-top: 2rem;
           border-top: 1px solid var(--color-border);
+          justify-content: flex-start;
         }
 
         .trust-item {
@@ -312,6 +322,14 @@ const Hero = () => {
             display: flex;
             justify-content: center;
             align-items: center;
+            top: auto;
+            left: auto;
+            transform: none;
+            width: auto;
+            max-width: none;
+            z-index: auto;
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .cycle-container {

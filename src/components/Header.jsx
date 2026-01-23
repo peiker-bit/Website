@@ -3,12 +3,21 @@ import { Menu, X, Phone, ArrowRight } from 'lucide-react';
 import logo from '../assets/logo.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import { supabase } from '../lib/supabaseClient';
+
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [navItems, setNavItems] = useState([
+    { label: 'Startseite', path: '/#home' },
+    { label: 'Leistungen', path: '/#services' },
+    { label: 'Lohnabrechnung', path: '/lohnabrechnung' },
+    { label: 'Kanzlei', path: '/#about' },
+  ]);
   const location = useLocation();
 
   useEffect(() => {
+    fetchMenuItems();
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -16,15 +25,25 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const fetchMenuItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('menu_items')
+        .select('*')
+        .eq('is_active', true)
+        .order('order', { ascending: true });
+
+      if (data && data.length > 0) {
+        setNavItems(data);
+      }
+    } catch (err) {
+      console.error('Error fetching menu items:', err);
+      // Fallback to defaults already in state
+    }
+  };
+
   const closeMenu = () => setIsMenuOpen(false);
-
   const navigate = useNavigate();
-
-  const navItems = [
-    { label: 'Startseite', path: '/#home' },
-    { label: 'Leistungen', path: '/#services' },
-    { label: 'Kanzlei', path: '/#about' },
-  ];
 
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>

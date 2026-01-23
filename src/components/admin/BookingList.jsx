@@ -5,7 +5,8 @@ import {
     User, Mail, Phone, MapPin, ChevronLeft, ChevronRight,
     Loader2, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
-import { subscribeToBookings, deleteBooking, updateBookingStatus } from '../../lib/bookingClient';
+import { subscribeToBookings, deleteBooking, updateBookingStatus, cancelBooking } from '../../lib/bookingClient';
+import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from './AdminLayout';
 
 const BookingList = () => {
@@ -15,6 +16,7 @@ const BookingList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all'); // all, pending, confirmed, cancelled
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [cancellationReason, setCancellationReason] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const bookingsPerPage = 20;
@@ -34,7 +36,10 @@ const BookingList = () => {
         let result = bookings;
 
         // Apply status filter
-        if (filterStatus !== 'all') {
+        if (filterStatus === 'all') {
+            // Show all EXCEPT cancelled by default
+            result = result.filter(b => b.status !== 'cancelled' && b.status !== 'canceled');
+        } else {
             result = result.filter(b => b.status === filterStatus);
         }
 
@@ -64,9 +69,24 @@ const BookingList = () => {
 
     const handleStatusUpdate = async (bookingId, newStatus) => {
         try {
-            await updateBookingStatus(bookingId, newStatus);
+            if (newStatus === 'cancelled') {
+                // Automated cancellation via API
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) throw new Error("Nicht authentifiziert");
+
+                await cancelBooking(bookingId, cancellationReason, session.access_token);
+            } else {
+                // Regular update for other statuses
+                await updateBookingStatus(bookingId, newStatus);
+            }
+
+            // Close modal after status update
+            setSelectedBooking(null);
+            setCancellationReason('');
+            // Refresh logic if needed (subscription handles it usually, but explicit fetch is safer if logic changed)
         } catch (error) {
             console.error('Error updating status:', error);
+            alert(`Fehler: ${error.message}`);
         }
     };
 
@@ -97,6 +117,7 @@ const BookingList = () => {
             case 'confirmed':
                 return <span className="status-badge confirmed"><CheckCircle size={14} /> Bestätigt</span>;
             case 'cancelled':
+            case 'canceled':
                 return <span className="status-badge cancelled"><XCircle size={14} /> Storniert</span>;
             default:
                 return <span className="status-badge pending"><AlertCircle size={14} /> Offen</span>;
@@ -121,7 +142,7 @@ const BookingList = () => {
                 <div className="bookings-header">
                     <div>
                         <h1>Terminbuchungen</h1>
-                        <p>{filteredBookings.length} {filterStatus === 'all' ? 'Gesamt' : filterStatus}</p>
+                        <p>{filteredBookings.length} {filterStatus === 'all' ? 'Aktive' : filterStatus === 'confirmed' ? 'Bestätigte' : filterStatus === 'pending' ? 'Offene' : 'Stornierte'}</p>
                     </div>
                 </div>
 
@@ -160,6 +181,12 @@ const BookingList = () => {
                             onClick={() => setFilterStatus('confirmed')}
                         >
                             Bestätigt
+                        </button>
+                        <button
+                            className={`filter-btn ${filterStatus === 'cancelled' ? 'active' : ''}`}
+                            onClick={() => setFilterStatus('cancelled')}
+                        >
+                            Storniert
                         </button>
                     </div>
                 </div>
@@ -300,22 +327,45 @@ const BookingList = () => {
                                             className="modal-btn primary"
                                             onClick={() => {
                                                 handleStatusUpdate(selectedBooking.id, 'confirmed');
-                                                setSelectedBooking(null);
                                             }}
                                         >
                                             <CheckCircle size={18} /> Bestätigen
                                         </button>
                                     )}
                                     {selectedBooking.status !== 'cancelled' && (
-                                        <button
-                                            className="modal-btn secondary"
-                                            onClick={() => {
-                                                handleStatusUpdate(selectedBooking.id, 'cancelled');
-                                                setSelectedBooking(null);
-                                            }}
-                                        >
-                                            <XCircle size={18} /> Stornieren
-                                        </button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', alignItems: 'flex-end' }}>
+                                            {/* Reason Input only when cancelling */}
+                                            <div style={{ width: '100%' }}>
+                                                <label className="detail-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Stornierungsgrund</label>
+                                                <textarea
+                                                    value={cancellationReason}
+                                                    onChange={(e) => setCancellationReason(e.target.value)}
+                                                    placeholder="Grund angeben (wird in E-Mail übernommen)..."
+                                                    rows="2"
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.5rem',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #e2e8f0',
+                                                        fontFamily: 'inherit'
+                                                    }}
+                                                />
+                                            </div>
+                                            <button
+                                                className="modal-btn secondary"
+                                                onClick={() => {
+                                                    // Only allow cancel if reason is provided? Or optional?
+                                                    // User requested reasoning, so let's enforce or at least encourage it.
+                                                    // For now, allow empty but default text handles it.
+                                                    handleStatusUpdate(selectedBooking.id, 'cancelled');
+                                                }}
+                                                disabled={!cancellationReason.trim()}
+                                                title={!cancellationReason.trim() ? "Bitte Grund angeben" : "Stornieren & Benachrichtigen"}
+                                                style={!cancellationReason.trim() ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                            >
+                                                <XCircle size={18} /> Stornieren & E-Mail
+                                            </button>
+                                        </div>
                                     )}
                                     <button
                                         className="modal-btn delete"

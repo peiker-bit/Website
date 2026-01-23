@@ -74,12 +74,44 @@ export const deleteBooking = async (id) => {
     if (error) throw error;
 };
 
-export const updateBookingStatus = async (id, status) => {
+export const updateBookingStatus = async (id, status, reason = null) => {
     if (!bookingSupabase) return;
+
+    const updateData = { status };
+    if (reason) {
+        updateData.cancellation_reason = reason;
+    }
+
     const { error } = await bookingSupabase
         .from(COLLECTION_NAME)
-        .update({ status })
+        .update(updateData)
         .eq('id', id);
 
     if (error) throw error;
+};
+
+// API Endpoint for Termintool (Booking Backend)
+const TERMINTOOL_API_URL = import.meta.env.VITE_TERMINTOOL_API_URL || 'http://localhost:3000/api/admin/cancel-booking';
+
+export const cancelBooking = async (id, reason, token) => {
+    if (!token) throw new Error("No authentication token provided");
+
+    const response = await fetch(TERMINTOOL_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            bookingId: id,
+            reason: reason
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+    }
+
+    return await response.json();
 };
