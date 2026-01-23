@@ -115,3 +115,161 @@ export const cancelBooking = async (id, reason, token) => {
 
     return await response.json();
 };
+
+// --- Termintool Management Functions ---
+
+// 1. Appointment Types (Leistungsarten)
+export const getAppointmentTypes = async () => {
+    if (!bookingSupabase) return [];
+
+    const { data, error } = await bookingSupabase
+        .from('availability_options')
+        .select('*')
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching appointment types:", error);
+        return [];
+    }
+    return data;
+};
+
+export const createAppointmentType = async (typeData) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    // Get max sort order to append to end
+    const { data: maxData } = await bookingSupabase
+        .from('availability_options')
+        .select('sort_order')
+        .order('sort_order', { ascending: false })
+        .limit(1)
+        .single();
+
+    const nextOrder = (maxData?.sort_order || 0) + 1;
+
+    const { data, error } = await bookingSupabase
+        .from('availability_options')
+        .insert([{ ...typeData, sort_order: nextOrder }])
+        .select();
+
+    if (error) throw error;
+    return data[0];
+};
+
+export const updateAppointmentType = async (id, updates) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    const { data, error } = await bookingSupabase
+        .from('availability_options')
+        .update(updates)
+        .eq('id', id)
+        .select();
+
+    if (error) throw error;
+    return data[0];
+};
+
+export const reorderAppointmentTypes = async (orderedIds) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    // Updates to perform
+    const updates = orderedIds.map((id, index) =>
+        bookingSupabase
+            .from('availability_options')
+            .update({ sort_order: index })
+            .eq('id', id)
+    );
+
+    await Promise.all(updates);
+};
+
+export const deleteAppointmentType = async (id) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    const { error } = await bookingSupabase
+        .from('availability_options')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw error;
+};
+
+// 2. Global Settings (Buffer, Days)
+export const getBookingSettings = async () => {
+    if (!bookingSupabase) return null;
+
+    const { data, error } = await bookingSupabase
+        .from('booking_settings')
+        .select('*')
+        .limit(1)
+        .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returns
+        console.error("Error fetching booking settings:", error);
+    }
+    return data;
+};
+
+export const updateBookingSettings = async (settings) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    // Check if exists first (or we can use upsert if ID is known, but usually we just row 1)
+    const current = await getBookingSettings();
+
+    let result;
+    if (current) {
+        result = await bookingSupabase
+            .from('booking_settings')
+            .update(settings)
+            .eq('id', current.id)
+            .select();
+    } else {
+        result = await bookingSupabase
+            .from('booking_settings')
+            .insert([settings])
+            .select();
+    }
+
+    if (result.error) throw result.error;
+    return result.data[0];
+};
+
+// 3. Blocked Periods (Urlaub)
+export const getBlockedPeriods = async () => {
+    if (!bookingSupabase) return [];
+
+    const { data, error } = await bookingSupabase
+        .from('blocked_periods')
+        .select('*')
+        .order('start_date', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching blocked periods:", error);
+        return [];
+    }
+    return data;
+};
+
+export const addBlockedPeriod = async (periodData) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    const { data, error } = await bookingSupabase
+        .from('blocked_periods')
+        .insert([periodData])
+        .select();
+
+    if (error) throw error;
+    return data[0];
+};
+
+export const deleteBlockedPeriod = async (id) => {
+    if (!bookingSupabase) throw new Error("Booking connection not configured");
+
+    const { error } = await bookingSupabase
+        .from('blocked_periods')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw error;
+};

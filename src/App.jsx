@@ -18,6 +18,7 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import MessageList from './components/admin/MessageList';
 import BookingList from './components/admin/BookingList';
 import Settings from './components/admin/Settings';
+import TerminToolSettings from './components/admin/TerminToolSettings';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 function App() {
@@ -117,6 +118,11 @@ function App() {
           <Route path="/admin/settings" element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/termintool" element={
+            <ProtectedRoute>
+              <TerminToolSettings />
             </ProtectedRoute>
           } />
         </Routes>
