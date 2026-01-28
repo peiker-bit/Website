@@ -53,11 +53,14 @@ const item = {
 
 const Services = () => {
   return (
-    <section id="services" className="section bg-light">
+    <section id="services" className="section bg-subtle">
       <div className="container">
         <ScrollReveal>
           <div className="section-header text-center">
-            <h2 className="section-title">Meine Leistungen – mit klarem Mehrwert</h2>
+            <h2 className="section-title">Meine Leistungen</h2>
+            <p className="section-subtitle">
+              Maßgeschneiderte Lösungen für deinen Erfolg – transparent, digital und persönlich.
+            </p>
           </div>
         </ScrollReveal>
 
@@ -72,107 +75,163 @@ const Services = () => {
             <motion.div
               key={index}
               variants={item}
-              className="service-card"
-              whileHover={{
-                y: -5,
-                boxShadow: "0 20px 40px -5px rgba(14, 42, 71, 0.05)"
-              }}
+              className="service-card group"
             >
-              <div className="service-icon">{service.icon}</div>
-              <h3>{service.title}</h3>
-              <p>{service.desc}</p>
+              <div className="card-content">
+                <div className="icon-wrapper">
+                  {service.icon}
+                </div>
+                <h3>{service.title}</h3>
+                <p>{service.desc}</p>
+              </div>
+              <div className="card-border-gradient" />
             </motion.div>
           ))}
         </motion.div>
       </div>
 
       <style>{`
-        .bg-light {
+        .bg-subtle {
           background-color: var(--color-bg-subtle);
         }
 
         .section-header {
-          margin-bottom: 4rem;
-          max-width: 600px;
+          margin-bottom: 5rem;
+          max-width: 700px;
           margin-left: auto;
           margin-right: auto;
         }
 
         .section-title {
           font-size: var(--text-4xl);
-          margin-bottom: 1rem;
+          margin-bottom: 1.5rem;
+          color: var(--color-primary);
+          position: relative;
+          display: inline-block;
+        }
+        
+        /* Optional: aesthetic underline for title */
+        .section-title::after {
+          content: '';
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 60px;
+          height: 4px;
+          background: var(--gradient-accent);
+          border-radius: var(--radius-full);
         }
 
         .section-subtitle {
           color: var(--color-text-muted);
-          font-size: 1.125rem;
+          font-size: 1.25rem;
           line-height: 1.6;
         }
 
         .services-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 2rem;
+          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          gap: 2.5rem;
         }
 
         .service-card {
           background: white;
-          padding: 2.5rem;
-          border-radius: var(--radius-xl);
-          box-shadow: var(--shadow-sm);
-          transition: all var(--transition-normal);
-          border: 1px solid var(--color-border);
+          border-radius: var(--radius-2xl);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
           position: relative;
           overflow: hidden;
           height: 100%;
+          border: 1px solid rgba(226, 232, 240, 0.8);
           display: flex;
           flex-direction: column;
-          align-items: flex-start;
         }
 
-        @media (max-width: 640px) {
-            .service-card {
-                padding: 1.5rem;
-            }
+        .card-content {
+          padding: 3rem 2.5rem;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          z-index: 2;
+          position: relative;
         }
 
         .service-card:hover {
-          border-color: var(--color-accent-light);
-          transform: translateY(-5px);
-          box-shadow: var(--shadow-xl);
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+          border-color: rgba(6, 182, 212, 0.3);
         }
 
-        .service-icon {
-          width: 56px;
-          height: 56px;
+        .icon-wrapper {
+          width: 64px;
+          height: 64px;
           background: var(--color-bg-subtle);
           color: var(--color-primary);
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: var(--radius-lg);
-          margin-bottom: 1.5rem;
-          transition: all var(--transition-normal);
+          border-radius: var(--radius-xl);
+          margin-bottom: 2rem;
+          transition: all 0.4s ease;
+          position: relative;
+          z-index: 1;
         }
-
-        .service-card:hover .service-icon {
-          background: var(--color-accent);
+        
+        /* Cool effect: Icon wrapper gets gradient on hover */
+        .service-card:hover .icon-wrapper {
+          background: var(--gradient-accent);
           color: white;
-          transform: rotate(-5deg) scale(1.1);
-          box-shadow: var(--shadow-glow);
+          transform: scale(1.1) rotate(-3deg);
+          box-shadow: 0 10px 20px rgba(6, 182, 212, 0.25);
         }
 
         .service-card h3 {
           margin-bottom: 1rem;
-          font-size: 1.25rem;
+          font-size: 1.35rem;
           font-weight: 700;
+          color: var(--color-primary);
+          line-height: 1.3;
         }
 
         .service-card p {
           color: var(--color-text-muted);
-          font-size: 1rem;
-          line-height: 1.6;
+          font-size: 1.05rem;
+          line-height: 1.7;
           flex-grow: 1;
+          margin-bottom: 0;
+        }
+        
+        /* Gradient border effect at bottom */
+        .card-border-gradient {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 4px;
+          background: var(--gradient-accent);
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.4s ease;
+        }
+        
+        .service-card:hover .card-border-gradient {
+          transform: scaleX(1);
+        }
+
+        @media (max-width: 640px) {
+            .services-grid {
+              grid-template-columns: 1fr;
+              gap: 1.5rem;
+            }
+            
+            .service-card {
+                padding: 0;
+                border-radius: var(--radius-xl);
+            }
+            .card-content {
+              padding: 2rem;
+            }
         }
       `}</style>
     </section>

@@ -24,7 +24,16 @@ const TerminToolSettings = () => {
         buffer_minutes: 15,
         available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
         min_booking_notice_hours: 24,
-        max_booking_future_days: 60
+        max_booking_future_days: 60,
+        business_hours: {
+            Monday: { start: '09:00', end: '17:00' },
+            Tuesday: { start: '09:00', end: '17:00' },
+            Wednesday: { start: '09:00', end: '17:00' },
+            Thursday: { start: '09:00', end: '17:00' },
+            Friday: { start: '09:00', end: '17:00' },
+            Saturday: { start: '09:00', end: '13:00' },
+            Sunday: { start: '10:00', end: '14:00' }
+        }
     });
     const [blockedPeriods, setBlockedPeriods] = useState([]);
 
@@ -159,7 +168,35 @@ const TerminToolSettings = () => {
         setSettings({ ...settings, available_days: updated });
     };
 
+    const updateBusinessHours = (day, field, value) => {
+        setSettings({
+            ...settings,
+            business_hours: {
+                ...settings.business_hours,
+                [day]: {
+                    ...settings.business_hours[day],
+                    [field]: value
+                }
+            }
+        });
+    };
+
+    const validateBusinessHours = () => {
+        for (const day of settings.available_days || []) {
+            const hours = settings.business_hours?.[day];
+            if (hours && hours.start && hours.end) {
+                if (hours.start >= hours.end) {
+                    alert(`Geschäftszeiten für ${weekDays.find(d => d.id === day)?.label}: Startzeit muss vor Endzeit liegen.`);
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
     const handleSaveSettings = async () => {
+        if (!validateBusinessHours()) return;
+
         try {
             await updateBookingSettings(settings);
             showSuccess("Einstellungen gespeichert");
@@ -368,6 +405,97 @@ const TerminToolSettings = () => {
                                         />
                                     </div>
                                 </div>
+
+                                <div className="interval-settings">
+                                    <h3>
+                                        <Clock size={16} className="text-cyan-600" />
+                                        Zeitslot-Intervall
+                                    </h3>
+                                    <p>
+                                        Legen Sie fest, in welchem Rhythmus Termine angeboten werden sollen.
+                                    </p>
+
+                                    <div className="radio-group">
+                                        <label className={`radio-option ${(!settings.slot_interval_minutes || settings.slot_interval_minutes === 15) ? 'checked' : ''}`}>
+                                            <input
+                                                type="radio"
+                                                name="slotInterval"
+                                                value="15"
+                                                checked={(!settings.slot_interval_minutes || settings.slot_interval_minutes === 15)}
+                                                onChange={() => setSettings({ ...settings, slot_interval_minutes: 15 })}
+                                            />
+                                            <span className="radio-label">
+                                                <strong>Viertelstündlich</strong> (alle 15 Minuten)
+                                                <span className="radio-hint">z.B. 9:00, 9:15, 9:30...</span>
+                                            </span>
+                                        </label>
+
+                                        <label className={`radio-option ${settings.slot_interval_minutes === 30 ? 'checked' : ''}`}>
+                                            <input
+                                                type="radio"
+                                                name="slotInterval"
+                                                value="30"
+                                                checked={settings.slot_interval_minutes === 30}
+                                                onChange={() => setSettings({ ...settings, slot_interval_minutes: 30 })}
+                                            />
+                                            <span className="radio-label">
+                                                <strong>Halbstündlich</strong> (alle 30 Minuten)
+                                                <span className="radio-hint">z.B. 9:00, 9:30, 10:00...</span>
+                                            </span>
+                                        </label>
+
+                                        <label className={`radio-option ${settings.slot_interval_minutes === 60 ? 'checked' : ''}`}>
+                                            <input
+                                                type="radio"
+                                                name="slotInterval"
+                                                value="60"
+                                                checked={settings.slot_interval_minutes === 60}
+                                                onChange={() => setSettings({ ...settings, slot_interval_minutes: 60 })}
+                                            />
+                                            <span className="radio-label">
+                                                <strong>Stündlich</strong> (jede Stunde)
+                                                <span className="radio-hint">z.B. 9:00, 10:00, 11:00...</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-group-section">
+                                <h2>Geschäftszeiten</h2>
+                                <p className="help-text">Legen Sie die täglichen Zeitfenster fest, in denen Termine gebucht werden können.</p>
+                                <div className="business-hours-grid">
+                                    {weekDays
+                                        .filter(day => settings.available_days?.includes(day.id))
+                                        .map(day => (
+                                            <div key={day.id} className="business-hours-row">
+                                                <label className="day-label">{day.label}</label>
+                                                <div className="time-inputs">
+                                                    <div className="time-input-group">
+                                                        <label>Von</label>
+                                                        <input
+                                                            type="time"
+                                                            value={settings.business_hours?.[day.id]?.start || '09:00'}
+                                                            onChange={(e) => updateBusinessHours(day.id, 'start', e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <span className="time-separator">–</span>
+                                                    <div className="time-input-group">
+                                                        <label>Bis</label>
+                                                        <input
+                                                            type="time"
+                                                            value={settings.business_hours?.[day.id]?.end || '17:00'}
+                                                            onChange={(e) => updateBusinessHours(day.id, 'end', e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                                {settings.available_days?.length === 0 && (
+                                    <p className="empty-text">Bitte wählen Sie zuerst verfügbare Wochentage aus.</p>
+                                )}
                             </div>
 
                             <div className="actions-footer">
@@ -531,96 +659,160 @@ const TerminToolSettings = () => {
             </AnimatePresence>
 
             <style>{`
-                .settings-container { max-width: 900px; margin: 0 auto; }
+                .settings-container { max-width: 1200px; margin: 0 auto; }
                 .settings-header { margin-bottom: 2rem; }
-                .settings-header h1 { font-size: 2rem; color: var(--color-primary); margin-bottom: 0.5rem; }
-                
+                .settings-header h1 { font-size: 2rem; font-weight: 700; color: var(--color-primary); margin-bottom: 0.5rem; }
+                .settings-header p { color: #64748b; }
+
                 .error-banner, .success-banner { 
-                    padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center; 
+                    padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center; 
+                    font-weight: 500;
                 }
                 .error-banner { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
                 .success-banner { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
-                .tabs { display: flex; gap: 1rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 2rem; }
-                .tab { 
-                    padding: 1rem 1.5rem; background: none; border: none; border-bottom: 2px solid transparent; 
-                    font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s;
+                /* Mobile-friendly Tabs */
+                .tabs { 
+                    display: flex; gap: 0.5rem; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 5px;
+                    scrollbar-width: none; /* Firefox */
                 }
-                .tab:hover { color: var(--color-primary); }
-                .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+                .tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
-                .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-                .btn-primary { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-                .btn-primary:hover { background: var(--color-primary-dark); }
-                .btn-primary.large { padding: 0.8rem 2rem; font-size: 1.1rem; }
+                .tab { 
+                    padding: 0.75rem 1.5rem; background: white; border: 2px solid #e2e8f0; 
+                    border-radius: 10px; cursor: pointer; font-weight: 600; color: #64748b; 
+                    white-space: nowrap; transition: all 0.2s;
+                    font-family: inherit; font-size: 0.95rem;
+                }
+                .tab:hover { border-color: #cbd5e1; color: #475569; }
+                .tab.active { background: var(--color-primary); border-color: var(--color-primary); color: white; }
+
+                .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+                .section-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--color-text-main); margin: 0; }
                 
-                .btn-secondary { padding: 0.6rem 1.2rem; background: white; border: 1px solid #cbd5e1; color: #475569; border-radius: 8px; font-weight: 600; cursor: pointer; }
+                .btn-primary { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+                .btn-primary:hover { background: var(--color-primary-dark); }
+                .btn-primary.large { padding: 0.8rem 2rem; font-size: 1.05rem; }
+                
+                .btn-secondary { padding: 0.6rem 1.2rem; background: white; border: 1px solid #cbd5e1; color: #475569; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+                .btn-secondary:hover { background: #f1f5f9; border-color: #94a3b8; }
 
                 /* Types Grid */
-                .types-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-                .type-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-                .type-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-                .type-header h3 { font-size: 1.1rem; color: var(--color-primary); margin: 0; }
-                .status-badge { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600; }
+                .types-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+                .type-card { 
+                    background: white; padding: 1.5rem; border-radius: 12px; 
+                    border: 2px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+                    transition: all 0.2s; position: relative;
+                }
+                .type-card:hover { border-color: var(--color-primary-light); transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+                
+                .type-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+                .type-header h3 { font-size: 1.15rem; font-weight: 700; color: var(--color-text-main); margin: 0; }
+                
+                .status-badge { display: inline-block; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 99px; font-weight: 600; letter-spacing: 0.025em; text-transform: uppercase; }
                 .status-badge.active { background: #dcfce7; color: #166534; }
                 .status-badge.inactive { background: #f1f5f9; color: #64748b; }
                 
-                .type-details { display: flex; gap: 1rem; font-size: 0.9rem; color: #64748b; margin-bottom: 0.75rem; }
-                .type-details p { display: flex; align-items: center; gap: 0.4rem; }
-                .type-desc { font-size: 0.9rem; color: #475569; margin-bottom: 1.5rem; line-height: 1.4; }
+                .type-details { display: flex; gap: 1rem; font-size: 0.9rem; color: #64748b; margin-bottom: 1rem; flex-wrap: wrap; }
+                .type-details p { display: flex; align-items: center; gap: 0.4rem; background: #f8fafc; padding: 0.25rem 0.5rem; border-radius: 6px; }
+                .type-desc { font-size: 0.95rem; color: #475569; margin-bottom: 1.5rem; line-height: 1.5; }
                 
-                .type-actions { display: flex; gap: 0.5rem; border-top: 1px solid #f1f5f9; padding-top: 1rem; }
-                .btn-icon { display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.8rem; border: none; background: #f8fafc; color: #475569; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; }
+                .type-actions { display: flex; gap: 0.75rem; border-top: 1px solid #f1f5f9; padding-top: 1rem; }
+                .btn-icon { display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.75rem; border: 1px solid transparent; background: #f1f5f9; color: #475569; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
                 .btn-icon:hover { background: #e2e8f0; }
-                .btn-icon.delete { color: #dc2626; background: #fef2f2; }
-                .btn-icon.delete:hover { background: #fee2e2; }
+                .btn-icon.small { padding: 0.25rem; }
+                .btn-icon.delete { color: #dc2626; background: #fee2e2; }
+                .btn-icon.delete:hover { background: #fecaca; }
 
-                /* Availability */
-                .form-group-section { background: white; padding: 2rem; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 2rem; }
-                .form-group-section h2 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--color-text-main); }
-                .help-text { color: #64748b; margin-bottom: 1.5rem; }
+                /* Availability Section - Cleaner Look */
+                .form-group-section { background: white; padding: 2rem; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 2rem; }
+                .form-group-section h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--color-text-main); }
+                .help-text { color: #64748b; margin-bottom: 1.5rem; font-size: 0.95rem; }
                 
-                .weekdays-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; }
+                .weekdays-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
                 .day-checkbox { 
-                    display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; 
-                    border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-weight: 500;
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 0.6rem 1rem; min-width: 100px;
+                    border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; 
+                    transition: all 0.2s; font-weight: 600; color: #64748b; background: white;
                 }
-                .day-checkbox:hover { border-color: var(--color-primary-light); }
-                .day-checkbox.checked { border-color: var(--color-primary); background: #eff6ff; color: var(--color-primary); }
+                .day-checkbox:hover { border-color: #cbd5e1; }
+                .day-checkbox.checked { border-color: var(--color-primary); background: var(--color-primary); color: white; }
                 .day-checkbox input { display: none; }
 
-                .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+                .input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
                 .form-group { margin-bottom: 1.5rem; }
-                .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #475569; font-size: 0.9rem; }
+                .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #334155; font-size: 0.9rem; }
                 .form-group input, .form-group textarea { 
-                    width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; 
-                    font-size: 1rem; font-family: inherit; transition: border-color 0.2s;
+                    width: 100%; padding: 0.75rem 1rem; border: 2px solid #e2e8f0; border-radius: 10px; 
+                    font-size: 0.95rem; font-family: inherit; transition: all 0.2s; color: #1e293b;
+                    background: #f8fafc;
                 }
-                .form-group input:focus { border-color: var(--color-primary); outline: none; }
+                .form-group input:focus, .form-group textarea:focus { border-color: var(--color-primary); outline: none; background: white; }
                 
-                .actions-footer { display: flex; justify-content: flex-end; }
+                .actions-footer { display: flex; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid #f1f5f9; margin-top: 1rem; }
                 
                 /* Blocked List */
                 .blocked-list { display: flex; flex-direction: column; gap: 1rem; }
                 .block-item { 
                     display: flex; align-items: center; justify-content: space-between; 
-                    background: white; padding: 1rem 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0; 
+                    background: white; padding: 1.25rem 1.5rem; border-radius: 10px; border: 2px solid #e2e8f0;
+                    transition: all 0.2s;
                 }
+                .block-item:hover { border-color: #cbd5e1; }
                 .block-dates { display: flex; align-items: center; gap: 1rem; font-weight: 600; color: #334155; }
                 .block-dates .arrow { color: #94a3b8; }
-                .block-reason { color: #64748b; flex: 1; margin-left: 2rem; }
+                .block-reason { color: #64748b; flex: 1; margin-left: 2rem; font-weight: 500; }
 
                 /* Modal */
-                .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-                .modal-content { background: white; width: 100%; max-width: 500px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-xl); }
-                .modal-header { padding: 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-                .modal-header h3 { margin: 0; font-size: 1.25rem; }
-                .modal-header button { background: none; border: none; cursor: pointer; color: #64748b; }
-                .modal-body { padding: 1.5rem; }
-                .modal-footer { padding: 1.5rem; background: #f8fafc; display: flex; justify-content: flex-end; gap: 1rem; }
+                .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 1rem; }
+                .modal-content { background: white; width: 100%; max-width: 550px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); animation: modalIn 0.2s ease-out; }
+                @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
                 
-                .checkbox label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-                .checkbox input { width: auto; }
+                .modal-header { padding: 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+                .modal-header h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+                .modal-header button { background: none; border: none; cursor: pointer; color: #64748b; padding: 0.5rem; border-radius: 6px; transition: background 0.2s; }
+                .modal-header button:hover { background: #e2e8f0; color: #334155; }
+                
+                .modal-body { padding: 1.5rem; }
+                .modal-footer { padding: 1.5rem; background: #f8fafc; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #e2e8f0; }
+                
+                .checkbox label { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; user-select: none; }
+                .checkbox input { width: 20px; height: 20px; border-radius: 6px; accent-color: var(--color-primary); }
+
+                /* Business Hours */
+                .business-hours-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+                .business-hours-row { 
+                    display: flex; align-items: center; gap: 1rem; padding: 1rem; 
+                    background: #fff; border-radius: 10px; border: 2px solid #e2e8f0;
+                    flex-wrap: wrap;
+                }
+                .day-label { font-weight: 700; color: #334155; width: 100px; }
+                .time-inputs { display: flex; align-items: center; gap: 1rem; flex: 1; }
+                .time-input-group { display: flex; flex-direction: column; gap: 0.2rem; }
+                .time-input-group label { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; font-weight: 700; letter-spacing: 0.05em; }
+                .time-input-group input[type="time"] { 
+                    padding: 0.5rem 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; 
+                    font-size: 1rem; font-weight: 500; font-family: inherit; min-width: 120px;
+                    background: #f8fafc; color: #334155;
+                }
+                .time-input-group input[type="time"]:focus { border-color: var(--color-primary); outline: none; background: white; }
+                .time-separator { color: #cbd5e1; font-weight: 400; font-size: 1.5rem; margin-top: 1rem; }
+                
+                .empty-text { color: #64748b; font-style: italic; text-align: center; padding: 3rem; background: #f8fafc; border-radius: 12px; border: 2px dashed #cbd5e1; }
+                
+                /* Interval Settings */
+                .interval-settings { margin-top: 2rem; padding: 1.5rem; background: #f8fafc; border-radius: 10px; border: 2px solid #e2e8f0; }
+                .interval-settings h3 { font-size: 1.1rem; font-weight: 700; color: var(--color-text-main); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+                .interval-settings p { color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; }
+                
+                .radio-group { display: flex; flex-direction: column; gap: 0.75rem; }
+                .radio-option { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: white; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+                .radio-option:hover { border-color: #cbd5e1; }
+                .radio-option.checked { border-color: var(--color-primary); background: #eff6ff90; }
+                .radio-option input { accent-color: var(--color-primary); width: 18px; height: 18px; margin: 0; }
+                .radio-label { display: flex; flex-direction: column; font-size: 0.95rem; color: #334155; gap: 0.2rem; }
+                .radio-hint { font-size: 0.8rem; color: #64748b; font-weight: 400; }
             `}</style>
         </AdminLayout>
     );
