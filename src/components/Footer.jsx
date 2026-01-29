@@ -21,7 +21,7 @@ const Footer = () => {
                     <div className="footer-links">
                         <h4>Rechtliches</h4>
                         <Link to="/impressum">Impressum</Link>
-                        <a href="#">Datenschutz</a>
+                        <Link to="/datenschutz">Datenschutz</Link>
                         <Link to="/agb">AGB</Link>
                     </div>
 

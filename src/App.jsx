@@ -11,6 +11,7 @@ import ServicesPage from './components/ServicesPage';
 import Contact from './components/Contact';
 import AGB from './components/AGB';
 import Impressum from './components/Impressum';
+import Datenschutz from './components/Datenschutz';
 
 // Admin components
 import AdminLogin from './components/admin/AdminLogin';
@@ -94,6 +95,13 @@ function App() {
             <>
               <Header />
               <main><Impressum /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/datenschutz" element={
+            <>
+              <Header />
+              <main><Datenschutz /></main>
               <Footer />
             </>
           } />
