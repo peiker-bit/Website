@@ -5,6 +5,7 @@ import {
     CheckCircle, AlertCircle, Loader2, StopCircle, ArrowUp, ArrowDown
 } from 'lucide-react';
 import AdminLayout from './AdminLayout';
+import TimeRangePicker from './TimeRangePicker';
 import {
     getAppointmentTypes, createAppointmentType, updateAppointmentType, deleteAppointmentType,
     getBookingSettings, updateBookingSettings,
@@ -25,15 +26,7 @@ const TerminToolSettings = () => {
         available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
         min_booking_notice_hours: 24,
         max_booking_future_days: 60,
-        business_hours: {
-            Monday: { start: '09:00', end: '17:00' },
-            Tuesday: { start: '09:00', end: '17:00' },
-            Wednesday: { start: '09:00', end: '17:00' },
-            Thursday: { start: '09:00', end: '17:00' },
-            Friday: { start: '09:00', end: '17:00' },
-            Saturday: { start: '09:00', end: '13:00' },
-            Sunday: { start: '10:00', end: '14:00' }
-        }
+        business_hours: {}
     });
     const [blockedPeriods, setBlockedPeriods] = useState([]);
 
@@ -62,7 +55,36 @@ const TerminToolSettings = () => {
             ]);
 
             setAppointmentTypes(types || []);
-            if (settingsData) setSettings(settingsData);
+
+            if (settingsData) {
+                // Normalize business_hours to new format if needed
+                const hours = settingsData.business_hours || {};
+                const normalizedHours = {};
+
+                ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].forEach(day => {
+                    const dayConfig = hours[day];
+                    if (dayConfig && !dayConfig.periods && dayConfig.start && dayConfig.end) {
+                        // Convert old format to new format
+                        normalizedHours[day] = {
+                            enabled: true,
+                            periods: [{ start: dayConfig.start, end: dayConfig.end }]
+                        };
+                    } else if (dayConfig) {
+                        normalizedHours[day] = {
+                            enabled: dayConfig.enabled ?? true,
+                            periods: dayConfig.periods || (dayConfig.start ? [{ start: dayConfig.start, end: dayConfig.end }] : [])
+                        };
+                    } else {
+                        normalizedHours[day] = { enabled: false, periods: [] };
+                    }
+                });
+
+                setSettings({
+                    ...settingsData,
+                    business_hours: normalizedHours
+                });
+            }
+
             setBlockedPeriods(blocks || []);
         } catch (err) {
             console.error(err);
@@ -165,7 +187,17 @@ const TerminToolSettings = () => {
         const updated = current.includes(dayId)
             ? current.filter(d => d !== dayId)
             : [...current, dayId];
-        setSettings({ ...settings, available_days: updated });
+
+        // Also update enable status in business_hours
+        const newHours = { ...settings.business_hours };
+        if (updated.includes(dayId)) {
+            if (!newHours[dayId]) newHours[dayId] = { enabled: true, periods: [{ start: '09:00', end: '17:00' }] };
+            else newHours[dayId] = { ...newHours[dayId], enabled: true };
+        } else {
+            if (newHours[dayId]) newHours[dayId] = { ...newHours[dayId], enabled: false };
+        }
+
+        setSettings({ ...settings, available_days: updated, business_hours: newHours });
     };
 
     const updateBusinessHours = (day, field, value) => {
@@ -183,11 +215,13 @@ const TerminToolSettings = () => {
 
     const validateBusinessHours = () => {
         for (const day of settings.available_days || []) {
-            const hours = settings.business_hours?.[day];
-            if (hours && hours.start && hours.end) {
-                if (hours.start >= hours.end) {
-                    alert(`Geschäftszeiten für ${weekDays.find(d => d.id === day)?.label}: Startzeit muss vor Endzeit liegen.`);
-                    return false;
+            const dayConfig = settings.business_hours?.[day];
+            if (dayConfig?.periods) {
+                for (const period of dayConfig.periods) {
+                    if (period.start >= period.end) {
+                        alert(`Geschäftszeiten für ${weekDays.find(d => d.id === day)?.label}: Startzeit muss vor Endzeit liegen.`);
+                        return false;
+                    }
                 }
             }
         }
@@ -463,31 +497,18 @@ const TerminToolSettings = () => {
 
                             <div className="form-group-section">
                                 <h2>Geschäftszeiten</h2>
-                                <p className="help-text">Legen Sie die täglichen Zeitfenster fest, in denen Termine gebucht werden können.</p>
+                                <p className="help-text">Legen Sie die täglichen Zeitfenster fest, in denen Termine gebucht werden können. Sie können mehrere Zeiträume pro Tag definieren (z.B. für eine Mittagspause).</p>
                                 <div className="business-hours-grid">
                                     {weekDays
                                         .filter(day => settings.available_days?.includes(day.id))
                                         .map(day => (
                                             <div key={day.id} className="business-hours-row">
                                                 <label className="day-label">{day.label}</label>
-                                                <div className="time-inputs">
-                                                    <div className="time-input-group">
-                                                        <label>Von</label>
-                                                        <input
-                                                            type="time"
-                                                            value={settings.business_hours?.[day.id]?.start || '09:00'}
-                                                            onChange={(e) => updateBusinessHours(day.id, 'start', e.target.value)}
-                                                        />
-                                                    </div>
-                                                    <span className="time-separator">–</span>
-                                                    <div className="time-input-group">
-                                                        <label>Bis</label>
-                                                        <input
-                                                            type="time"
-                                                            value={settings.business_hours?.[day.id]?.end || '17:00'}
-                                                            onChange={(e) => updateBusinessHours(day.id, 'end', e.target.value)}
-                                                        />
-                                                    </div>
+                                                <div className="time-inputs-wrapper" style={{ flex: 1 }}>
+                                                    <TimeRangePicker
+                                                        periods={settings.business_hours?.[day.id]?.periods || []}
+                                                        onChange={(newPeriods) => updateBusinessHours(day.id, 'periods', newPeriods)}
+                                                    />
                                                 </div>
                                             </div>
                                         ))
