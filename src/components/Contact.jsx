@@ -88,7 +88,7 @@ const Contact = () => {
         <div className="contact-wrapper">
           <div className="contact-info">
             <ScrollReveal>
-              <h2>Kontakt aufnehmen</h2>
+              <h2 className="section-title">Kontakt aufnehmen</h2>
               <p>
                 Lass uns über deine steuerlichen Themen sprechen.<br />
                 In einem unverbindlichen Erstgespräch verschaffen wir uns gemeinsam einen Überblick und klären, wie ich dich unterstützen kann.

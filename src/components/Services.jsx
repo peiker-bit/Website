@@ -102,27 +102,6 @@ const Services = () => {
           margin-right: auto;
         }
 
-        .section-title {
-          font-size: var(--text-4xl);
-          margin-bottom: 1.5rem;
-          color: var(--color-primary);
-          position: relative;
-          display: inline-block;
-        }
-        
-        /* Optional: aesthetic underline for title */
-        .section-title::after {
-          content: '';
-          position: absolute;
-          bottom: -10px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 60px;
-          height: 4px;
-          background: var(--gradient-accent);
-          border-radius: var(--radius-full);
-        }
-
         .section-subtitle {
           color: var(--color-text-muted);
           font-size: 1.25rem;

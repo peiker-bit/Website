@@ -11,7 +11,7 @@ const About = () => {
                     <div className="about-content">
                         <ScrollReveal>
                             <div className="label-text">Die Kanzlei</div>
-                            <h2>Steuerberatung, die Orientierung schafft und Entscheidungen unterstützt</h2>
+                            <h2 className="section-title">Steuerberatung, die Orientierung schafft und Entscheidungen unterstützt</h2>
                             <p>
                                 Ich verstehe mich als Partner auf Augenhöhe. Steuerberatung bedeutet für mich mehr als das Ausfüllen von Formularen – sie schafft Struktur, Orientierung und eine verlässliche Grundlage für fundierte wirtschaftliche Entscheidungen.
                             </p>

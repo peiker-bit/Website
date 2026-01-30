@@ -27,10 +27,10 @@ const Footer = () => {
 
                     <div className="footer-links">
                         <h4>Leistungen</h4>
-                        <a href="#">Einkommensteuer</a>
-                        <a href="#">Jahresabschluss</a>
-                        <a href="#">Buchführung</a>
-                        <a href="#">Beratung</a>
+                        <a href="/#services">Einkommensteuer</a>
+                        <a href="/#services">Jahresabschluss</a>
+                        <a href="/#services">Buchführung</a>
+                        <a href="/#services">Beratung</a>
                     </div>
 
                     <div className="footer-links">
