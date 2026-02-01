@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import AdminLayout from './AdminLayout';
 import EmailSettings from './EmailSettings';
 import MenuManager from './MenuManager';
-import { Mail, Menu as MenuIcon } from 'lucide-react';
+import TerminToolSettings from './TerminToolSettings';
+import { Mail, Menu as MenuIcon, Calendar } from 'lucide-react';
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState('email');
@@ -19,8 +20,8 @@ const Settings = () => {
                     <button
                         onClick={() => setActiveTab('email')}
                         className={`flex items-center gap-2 px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'email'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         <Mail size={18} />
@@ -29,28 +30,29 @@ const Settings = () => {
                     <button
                         onClick={() => setActiveTab('menu')}
                         className={`flex items-center gap-2 px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'menu'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         <MenuIcon size={18} />
                         Menü-Verwaltung
                     </button>
+                    <button
+                        onClick={() => setActiveTab('termintool')}
+                        className={`flex items-center gap-2 px-4 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'termintool'
+                            ? 'border-blue-600 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        <Calendar size={18} />
+                        Terminbuchung
+                    </button>
                 </div>
 
                 <div className="settings-content">
-                    {activeTab === 'email' && (
-                        // Render EmailSettings but we need to strip its layout since we are already in one
-                        // Actually, EmailSettings uses AdminLayout. We should ideally refactor EmailSettings 
-                        // to NOT use AdminLayout if used here, or we simple render it and let it own the page if it wasn't tabbed.
-                        // Since we can't easily strip the layout from the existing component without modifying it,
-                        // let's modify EmailSettings to accept a prop `embedded` or similar, OR 
-                        // we just recreate the necessary parts here.
-                        // Better: Modify EmailSettings.jsx to be a content-only component if needed, or just conditionally render layout.
-                        // For now, let's assume we will modify EmailSettings to optionally skip layout.
-                        <EmailSettings embedded={true} />
-                    )}
+                    {activeTab === 'email' && <EmailSettings embedded={true} />}
                     {activeTab === 'menu' && <MenuManager />}
+                    {activeTab === 'termintool' && <TerminToolSettings embedded={true} />}
                 </div>
             </div>
             <style>{`

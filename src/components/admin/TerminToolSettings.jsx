@@ -13,559 +13,491 @@ import {
     reorderAppointmentTypes
 } from '../../lib/bookingClient';
 
-const TerminToolSettings = () => {
+const TerminToolSettings = ({ embedded = false }) => {
     const [activeTab, setActiveTab] = useState('types'); // types, availability, blocked
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [successMsg, setSuccessMsg] = useState('');
-
-    // Data States
     const [appointmentTypes, setAppointmentTypes] = useState([]);
-    const [settings, setSettings] = useState({
-        buffer_minutes: 15,
-        available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        min_booking_notice_hours: 24,
-        max_booking_future_days: 60,
-        business_hours: {}
-    });
+    const [settings, setSettings] = useState({});
     const [blockedPeriods, setBlockedPeriods] = useState([]);
+    const [error, setError] = useState(null);
+    const [successMsg, setSuccessMsg] = useState(null);
+    const [reordering, setReordering] = useState(false);
 
     // Modal States
     const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
-    const [editingType, setEditingType] = useState(null); // null = create new
-    const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
-    const [reordering, setReordering] = useState(false);
+    const [editingType, setEditingType] = useState(null);
+    const [typeForm, setTypeForm] = useState({ name: '', duration_minutes: 60, price: 0, description: '', is_active: true });
 
-    // Form States
-    const [typeForm, setTypeForm] = useState({ name: '', duration_minutes: 30, description: '', price: 0, is_active: true });
+    const [isBlockModalOpen, setIsBlockModalOpen] = useState(false);
     const [blockForm, setBlockForm] = useState({ start_date: '', end_date: '', reason: '' });
 
+    const weekDays = [
+        { id: 'mo', label: 'Montag' },
+        { id: 'tu', label: 'Dienstag' },
+        { id: 'we', label: 'Mittwoch' },
+        { id: 'th', label: 'Donnerstag' },
+        { id: 'fr', label: 'Freitag' },
+        { id: 'sa', label: 'Samstag' },
+        { id: 'su', label: 'Sonntag' }
+    ];
+
     useEffect(() => {
-        fetchData();
+        loadData();
     }, []);
 
-    const fetchData = async () => {
+    const loadData = async () => {
         setLoading(true);
-        setError(null);
         try {
-            const [types, settingsData, blocks] = await Promise.all([
+            const [types, bookingSettings, blocked] = await Promise.all([
                 getAppointmentTypes(),
                 getBookingSettings(),
                 getBlockedPeriods()
             ]);
 
             setAppointmentTypes(types || []);
-
-            if (settingsData) {
-                // Normalize business_hours to new format if needed
-                const hours = settingsData.business_hours || {};
-                const normalizedHours = {};
-
-                ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].forEach(day => {
-                    const dayConfig = hours[day];
-                    if (dayConfig && !dayConfig.periods && dayConfig.start && dayConfig.end) {
-                        // Convert old format to new format
-                        normalizedHours[day] = {
-                            enabled: true,
-                            periods: [{ start: dayConfig.start, end: dayConfig.end }]
-                        };
-                    } else if (dayConfig) {
-                        normalizedHours[day] = {
-                            enabled: dayConfig.enabled ?? true,
-                            periods: dayConfig.periods || (dayConfig.start ? [{ start: dayConfig.start, end: dayConfig.end }] : [])
-                        };
-                    } else {
-                        normalizedHours[day] = { enabled: false, periods: [] };
-                    }
-                });
-
-                setSettings({
-                    ...settingsData,
-                    business_hours: normalizedHours
-                });
-            }
-
-            setBlockedPeriods(blocks || []);
+            setSettings(bookingSettings || {
+                buffer_minutes: 15,
+                min_booking_notice_hours: 24,
+                max_booking_future_days: 60,
+                available_days: ['mo', 'tu', 'we', 'th', 'fr'],
+                business_hours: {}
+            });
+            setBlockedPeriods(blocked || []);
         } catch (err) {
-            console.error(err);
-            setError("Fehler beim Laden der Daten. Bitte stellen Sie sicher, dass die Datenbank-Tabellen existieren.");
+            console.error("Error loading settings:", err);
+            setError("Fehler beim Laden der Einstellungen. Bitte prüfen Sie Ihre Verbindung.");
         } finally {
             setLoading(false);
         }
     };
 
-    const showSuccess = (msg) => {
-        setSuccessMsg(msg);
-        setTimeout(() => setSuccessMsg(''), 3000);
+    // --- Handlers for Appointment Types ---
+    const openTypeModal = (type = null) => {
+        if (type) {
+            setEditingType(type);
+            setTypeForm({ ...type });
+        } else {
+            setEditingType(null);
+            setTypeForm({ name: '', duration_minutes: 60, price: 0, description: '', is_active: true });
+        }
+        setIsTypeModalOpen(true);
     };
 
-    // --- Type Handlers ---
     const handleSaveType = async (e) => {
         e.preventDefault();
         try {
             if (editingType) {
                 await updateAppointmentType(editingType.id, typeForm);
-                showSuccess("Terminart aktualisiert");
+                setSuccessMsg("Terminart aktualisiert.");
             } else {
                 await createAppointmentType(typeForm);
-                showSuccess("Terminart erstellt");
+                setSuccessMsg("Neue Terminart erstellt.");
             }
             setIsTypeModalOpen(false);
-            setEditingType(null);
-            fetchData(); // Refresh list
+            loadData();
+            setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            alert("Fehler beim Speichern: " + err.message);
+            setError("Fehler beim Speichern.");
+            setTimeout(() => setError(null), 3000);
         }
     };
 
     const handleDeleteType = async (id) => {
-        if (!window.confirm("Wirklich löschen?")) return;
+        if (!window.confirm("Möchten Sie diese Terminart wirklich löschen?")) return;
         try {
             await deleteAppointmentType(id);
-            showSuccess("Terminart gelöscht");
-            fetchData();
+            setSuccessMsg("Terminart gelöscht.");
+            loadData();
+            setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            alert("Fehler: " + err.message);
+            setError("Fehler beim Löschen.");
         }
     };
 
     const moveType = async (index, direction) => {
         if (reordering) return;
-        const newIndex = direction === 'up' ? index - 1 : index + 1;
-        if (newIndex < 0 || newIndex >= appointmentTypes.length) return;
-
         const newTypes = [...appointmentTypes];
-        const [movedType] = newTypes.splice(index, 1);
-        newTypes.splice(newIndex, 0, movedType);
+        if (direction === 'up' && index > 0) {
+            [newTypes[index], newTypes[index - 1]] = [newTypes[index - 1], newTypes[index]];
+        } else if (direction === 'down' && index < newTypes.length - 1) {
+            [newTypes[index], newTypes[index + 1]] = [newTypes[index + 1], newTypes[index]];
+        } else {
+            return;
+        }
 
-        setAppointmentTypes(newTypes); // Optimistic update
+        setAppointmentTypes(newTypes); // Optimistic UI
         setReordering(true);
-
         try {
-            const orderedIds = newTypes.map(t => t.id);
-            await reorderAppointmentTypes(orderedIds);
-            // No need to show success message for every click, keep it fluid
+            await reorderAppointmentTypes(newTypes.map(t => t.id));
         } catch (err) {
-            console.error("Reorder failed", err);
-            fetchData(); // Revert on error
-            alert("Fehler beim Sortieren");
+            loadData(); // Revert on error
+            setError("Fehler beim Speichern der Sortierung.");
         } finally {
             setReordering(false);
         }
     };
 
-    const openTypeModal = (type = null) => {
-        if (type) {
-            setEditingType(type);
-            setTypeForm({
-                name: type.name,
-                duration_minutes: type.duration_minutes,
-                description: type.description || '',
-                price: type.price || 0,
-                is_active: type.is_active
-            });
-        } else {
-            setEditingType(null);
-            setTypeForm({ name: '', duration_minutes: 30, description: '', price: 0, is_active: true });
+    // --- Handlers for Settings ---
+    const handleSaveSettings = async () => {
+        try {
+            await updateBookingSettings(settings);
+            setSuccessMsg("Einstellungen erfolgreich gespeichert.");
+            setTimeout(() => setSuccessMsg(null), 3000);
+        } catch (err) {
+            setError("Fehler beim Speichern der Einstellungen.");
         }
-        setIsTypeModalOpen(true);
     };
-
-    // --- Settings Handlers ---
-    const weekDays = [
-        { id: 'Monday', label: 'Montag' },
-        { id: 'Tuesday', label: 'Dienstag' },
-        { id: 'Wednesday', label: 'Mittwoch' },
-        { id: 'Thursday', label: 'Donnerstag' },
-        { id: 'Friday', label: 'Freitag' },
-        { id: 'Saturday', label: 'Samstag' },
-        { id: 'Sunday', label: 'Sonntag' },
-    ];
 
     const toggleDay = (dayId) => {
-        const current = settings.available_days || [];
-        const updated = current.includes(dayId)
-            ? current.filter(d => d !== dayId)
-            : [...current, dayId];
-
-        // Also update enable status in business_hours
-        const newHours = { ...settings.business_hours };
-        if (updated.includes(dayId)) {
-            if (!newHours[dayId]) newHours[dayId] = { enabled: true, periods: [{ start: '09:00', end: '17:00' }] };
-            else newHours[dayId] = { ...newHours[dayId], enabled: true };
+        const currentDays = settings.available_days || [];
+        let newDays;
+        if (currentDays.includes(dayId)) {
+            newDays = currentDays.filter(d => d !== dayId);
         } else {
-            if (newHours[dayId]) newHours[dayId] = { ...newHours[dayId], enabled: false };
+            newDays = [...currentDays, dayId];
         }
-
-        setSettings({ ...settings, available_days: updated, business_hours: newHours });
+        setSettings({ ...settings, available_days: newDays });
     };
 
-    const updateBusinessHours = (day, field, value) => {
+    const updateBusinessHours = (dayId, field, value) => {
+        const currentHours = settings.business_hours || {};
+        const dayHours = currentHours[dayId] || { periods: [] };
+
+        const updatedDayHours = { ...dayHours, [field]: value };
+
         setSettings({
             ...settings,
             business_hours: {
-                ...settings.business_hours,
-                [day]: {
-                    ...settings.business_hours[day],
-                    [field]: value
-                }
+                ...currentHours,
+                [dayId]: updatedDayHours
             }
         });
     };
 
-    const validateBusinessHours = () => {
-        for (const day of settings.available_days || []) {
-            const dayConfig = settings.business_hours?.[day];
-            if (dayConfig?.periods) {
-                for (const period of dayConfig.periods) {
-                    if (period.start >= period.end) {
-                        alert(`Geschäftszeiten für ${weekDays.find(d => d.id === day)?.label}: Startzeit muss vor Endzeit liegen.`);
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    };
-
-    const handleSaveSettings = async () => {
-        if (!validateBusinessHours()) return;
-
-        try {
-            await updateBookingSettings(settings);
-            showSuccess("Einstellungen gespeichert");
-        } catch (err) {
-            alert("Fehler: " + err.message);
-        }
-    };
-
-    // --- Block Handlers ---
+    // --- Handlers for Blocked Periods ---
     const handleSaveBlock = async (e) => {
         e.preventDefault();
         try {
-            // Convert strings to dates or keep strings? Supabase expects proper timestamps usually, but input date is YYYY-MM-DD
-            // Let's create proper ISO strings
-            const start = new Date(blockForm.start_date).toISOString();
-            const end = new Date(blockForm.end_date).toISOString();
-
-            if (new Date(blockForm.start_date) > new Date(blockForm.end_date)) {
-                alert("Enddatum muss nach Startdatum liegen.");
-                return;
-            }
-
-            await addBlockedPeriod({
-                start_date: start,
-                end_date: end,
-                reason: blockForm.reason
-            });
-            showSuccess("Blocker erstellt");
+            await addBlockedPeriod(blockForm);
+            setSuccessMsg("Abwesenheit eingetragen.");
             setIsBlockModalOpen(false);
             setBlockForm({ start_date: '', end_date: '', reason: '' });
-            fetchData();
+            loadData();
+            setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            alert("Fehler: " + err.message);
+            setError("Fehler beim Speichern.");
         }
     };
 
     const handleDeleteBlock = async (id) => {
-        if (!window.confirm("Wirklich löschen?")) return;
+        if (!window.confirm("Eintrag löschen?")) return;
         try {
             await deleteBlockedPeriod(id);
-            showSuccess("Blocker gelöscht");
-            fetchData();
+            loadData();
         } catch (err) {
-            alert("Fehler: " + err.message);
+            setError("Fehler beim Löschen.");
         }
     };
 
     if (loading) {
-        return (
-            <AdminLayout>
-                <div className="loading-container">
-                    <Loader2 size={48} className="spin-icon" />
-                    <p>Lade Termintool Daten...</p>
-                </div>
-            </AdminLayout>
+        const loadingContent = (
+            <div className="loading-container">
+                <Loader2 size={48} className="spin-icon" />
+                <p>Lade Termintool Daten...</p>
+            </div>
         );
+        return embedded ? loadingContent : <AdminLayout>{loadingContent}</AdminLayout>;
     }
 
-    return (
-        <AdminLayout>
-            <div className="settings-container">
+    const content = (
+        <div className={embedded ? "" : "settings-container"}>
+            {!embedded && (
                 <div className="settings-header">
                     <h1>Termintool Verwaltung</h1>
                     <p>Konfigurieren Sie Ihre Terminbuchung.</p>
                 </div>
+            )}
 
-                {error && (
-                    <div className="error-banner">
-                        <AlertCircle size={20} />
-                        {error}
-                    </div>
-                )}
-
-                {successMsg && (
-                    <div className="success-banner">
-                        <CheckCircle size={20} />
-                        {successMsg}
-                    </div>
-                )}
-
-                <div className="tabs">
-                    <button
-                        className={`tab ${activeTab === 'types' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('types')}
-                    >
-                        Terminarten
-                    </button>
-                    <button
-                        className={`tab ${activeTab === 'availability' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('availability')}
-                    >
-                        Verfügbarkeit & Einstellungen
-                    </button>
-                    <button
-                        className={`tab ${activeTab === 'blocked' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('blocked')}
-                    >
-                        Urlaub & Blocker
-                    </button>
+            {error && (
+                <div className="error-banner">
+                    <AlertCircle size={20} />
+                    {error}
                 </div>
+            )}
 
-                <div className="tab-content">
-                    {/* --- APPOINTMENT TYPES --- */}
-                    {activeTab === 'types' && (
-                        <div className="types-section">
-                            <div className="section-header">
-                                <h2>Angebotene Terminarten</h2>
-                                <button className="btn-primary" onClick={() => openTypeModal()}>
-                                    <Plus size={18} /> Neu erstellen
-                                </button>
-                            </div>
+            {/* ... rest of the content structure ... */}
 
-                            <div className="types-grid">
-                                {appointmentTypes.map((type, index) => (
-                                    <div key={type.id} className="type-card">
-                                        <div className="type-header">
-                                            <h3>{type.name}</h3>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    className="btn-icon small"
-                                                    onClick={() => moveType(index, 'up')}
-                                                    disabled={index === 0 || reordering}
-                                                    title="Nach oben verschieben"
-                                                >
-                                                    <ArrowUp size={14} />
-                                                </button>
-                                                <button
-                                                    className="btn-icon small"
-                                                    onClick={() => moveType(index, 'down')}
-                                                    disabled={index === appointmentTypes.length - 1 || reordering}
-                                                    title="Nach unten verschieben"
-                                                >
-                                                    <ArrowDown size={14} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div style={{ marginBottom: '1rem' }}>
-                                            <span className={`status-badge ${type.is_active ? 'active' : 'inactive'}`}>
-                                                {type.is_active ? 'Aktiv' : 'Inaktiv'}
-                                            </span>
-                                        </div>
-                                        <div className="type-details">
-                                            <p><Clock size={14} /> {type.duration_minutes} Minuten</p>
-                                            {type.price > 0 && <p className="price">{type.price}€</p>}
-                                        </div>
-                                        <p className="type-desc">{type.description}</p>
-                                        <div className="type-actions">
-                                            <button className="btn-icon" onClick={() => openTypeModal(type)}>
-                                                <Edit2 size={16} /> Bearbeiten
+
+            {error && (
+                <div className="error-banner">
+                    <AlertCircle size={20} />
+                    {error}
+                </div>
+            )}
+
+            {successMsg && (
+                <div className="success-banner">
+                    <CheckCircle size={20} />
+                    {successMsg}
+                </div>
+            )}
+
+            <div className="tabs">
+                <button
+                    className={`tab ${activeTab === 'types' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('types')}
+                >
+                    Terminarten
+                </button>
+                <button
+                    className={`tab ${activeTab === 'availability' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('availability')}
+                >
+                    Verfügbarkeit & Einstellungen
+                </button>
+                <button
+                    className={`tab ${activeTab === 'blocked' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('blocked')}
+                >
+                    Urlaub & Blocker
+                </button>
+            </div>
+
+            <div className="tab-content">
+                {/* --- APPOINTMENT TYPES --- */}
+                {activeTab === 'types' && (
+                    <div className="types-section">
+                        <div className="section-header">
+                            <h2>Angebotene Terminarten</h2>
+                            <button className="btn-primary" onClick={() => openTypeModal()}>
+                                <Plus size={18} /> Neu erstellen
+                            </button>
+                        </div>
+
+                        <div className="types-grid">
+                            {appointmentTypes.map((type, index) => (
+                                <div key={type.id} className="type-card">
+                                    <div className="type-header">
+                                        <h3>{type.name}</h3>
+                                        <div className="flex gap-2">
+                                            <button
+                                                className="btn-icon small"
+                                                onClick={() => moveType(index, 'up')}
+                                                disabled={index === 0 || reordering}
+                                                title="Nach oben verschieben"
+                                            >
+                                                <ArrowUp size={14} />
                                             </button>
-                                            <button className="btn-icon delete" onClick={() => handleDeleteType(type.id)}>
-                                                <Trash2 size={16} /> Löschen
+                                            <button
+                                                className="btn-icon small"
+                                                onClick={() => moveType(index, 'down')}
+                                                disabled={index === appointmentTypes.length - 1 || reordering}
+                                                title="Nach unten verschieben"
+                                            >
+                                                <ArrowDown size={14} />
                                             </button>
                                         </div>
                                     </div>
+                                    <div style={{ marginBottom: '1rem' }}>
+                                        <span className={`status-badge ${type.is_active ? 'active' : 'inactive'}`}>
+                                            {type.is_active ? 'Aktiv' : 'Inaktiv'}
+                                        </span>
+                                    </div>
+                                    <div className="type-details">
+                                        <p><Clock size={14} /> {type.duration_minutes} Minuten</p>
+                                        {type.price > 0 && <p className="price">{type.price}€</p>}
+                                    </div>
+                                    <p className="type-desc">{type.description}</p>
+                                    <div className="type-actions">
+                                        <button className="btn-icon" onClick={() => openTypeModal(type)}>
+                                            <Edit2 size={16} /> Bearbeiten
+                                        </button>
+                                        <button className="btn-icon delete" onClick={() => handleDeleteType(type.id)}>
+                                            <Trash2 size={16} /> Löschen
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* --- AVAILABILITY --- */}
+                {activeTab === 'availability' && (
+                    <div className="availability-section">
+                        <div className="form-group-section">
+                            <h2>Allgemeine Verfügbarkeit</h2>
+                            <p className="help-text">An welchen Wochentagen sind Termine generell möglich?</p>
+                            <div className="weekdays-grid">
+                                {weekDays.map(day => (
+                                    <label key={day.id} className={`day-checkbox ${settings.available_days?.includes(day.id) ? 'checked' : ''}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={settings.available_days?.includes(day.id) || false}
+                                            onChange={() => toggleDay(day.id)}
+                                        />
+                                        {day.label}
+                                    </label>
                                 ))}
                             </div>
                         </div>
-                    )}
 
-                    {/* --- AVAILABILITY --- */}
-                    {activeTab === 'availability' && (
-                        <div className="availability-section">
-                            <div className="form-group-section">
-                                <h2>Allgemeine Verfügbarkeit</h2>
-                                <p className="help-text">An welchen Wochentagen sind Termine generell möglich?</p>
-                                <div className="weekdays-grid">
-                                    {weekDays.map(day => (
-                                        <label key={day.id} className={`day-checkbox ${settings.available_days?.includes(day.id) ? 'checked' : ''}`}>
-                                            <input
-                                                type="checkbox"
-                                                checked={settings.available_days?.includes(day.id) || false}
-                                                onChange={() => toggleDay(day.id)}
-                                            />
-                                            {day.label}
-                                        </label>
-                                    ))}
+                        <div className="form-group-section">
+                            <h2>Zeitregeln</h2>
+                            <div className="input-row">
+                                <div className="form-group">
+                                    <label>Pufferzeit zwischen Terminen (Minuten)</label>
+                                    <input
+                                        type="number"
+                                        value={settings.buffer_minutes}
+                                        onChange={(e) => setSettings({ ...settings, buffer_minutes: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Min. Vorlaufzeit für Buchung (Stunden)</label>
+                                    <input
+                                        type="number"
+                                        value={settings.min_booking_notice_hours || 24}
+                                        onChange={(e) => setSettings({ ...settings, min_booking_notice_hours: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Max. Buchungsvorlauf (Tage)</label>
+                                    <input
+                                        type="number"
+                                        value={settings.max_booking_future_days || 60}
+                                        onChange={(e) => setSettings({ ...settings, max_booking_future_days: parseInt(e.target.value) || 0 })}
+                                    />
                                 </div>
                             </div>
 
-                            <div className="form-group-section">
-                                <h2>Zeitregeln</h2>
-                                <div className="input-row">
-                                    <div className="form-group">
-                                        <label>Pufferzeit zwischen Terminen (Minuten)</label>
+                            <div className="interval-settings">
+                                <h3>
+                                    <Clock size={16} className="text-cyan-600" />
+                                    Zeitslot-Intervall
+                                </h3>
+                                <p>
+                                    Legen Sie fest, in welchem Rhythmus Termine angeboten werden sollen.
+                                </p>
+
+                                <div className="radio-group">
+                                    <label className={`radio-option ${(!settings.slot_interval_minutes || settings.slot_interval_minutes === 15) ? 'checked' : ''}`}>
                                         <input
-                                            type="number"
-                                            value={settings.buffer_minutes}
-                                            onChange={(e) => setSettings({ ...settings, buffer_minutes: parseInt(e.target.value) || 0 })}
+                                            type="radio"
+                                            name="slotInterval"
+                                            value="15"
+                                            checked={(!settings.slot_interval_minutes || settings.slot_interval_minutes === 15)}
+                                            onChange={() => setSettings({ ...settings, slot_interval_minutes: 15 })}
                                         />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Min. Vorlaufzeit für Buchung (Stunden)</label>
+                                        <span className="radio-label">
+                                            <strong>Viertelstündlich</strong> (alle 15 Minuten)
+                                            <span className="radio-hint">z.B. 9:00, 9:15, 9:30...</span>
+                                        </span>
+                                    </label>
+
+                                    <label className={`radio-option ${settings.slot_interval_minutes === 30 ? 'checked' : ''}`}>
                                         <input
-                                            type="number"
-                                            value={settings.min_booking_notice_hours || 24}
-                                            onChange={(e) => setSettings({ ...settings, min_booking_notice_hours: parseInt(e.target.value) || 0 })}
+                                            type="radio"
+                                            name="slotInterval"
+                                            value="30"
+                                            checked={settings.slot_interval_minutes === 30}
+                                            onChange={() => setSettings({ ...settings, slot_interval_minutes: 30 })}
                                         />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Max. Buchungsvorlauf (Tage)</label>
+                                        <span className="radio-label">
+                                            <strong>Halbstündlich</strong> (alle 30 Minuten)
+                                            <span className="radio-hint">z.B. 9:00, 9:30, 10:00...</span>
+                                        </span>
+                                    </label>
+
+                                    <label className={`radio-option ${settings.slot_interval_minutes === 60 ? 'checked' : ''}`}>
                                         <input
-                                            type="number"
-                                            value={settings.max_booking_future_days || 60}
-                                            onChange={(e) => setSettings({ ...settings, max_booking_future_days: parseInt(e.target.value) || 0 })}
+                                            type="radio"
+                                            name="slotInterval"
+                                            value="60"
+                                            checked={settings.slot_interval_minutes === 60}
+                                            onChange={() => setSettings({ ...settings, slot_interval_minutes: 60 })}
                                         />
-                                    </div>
+                                        <span className="radio-label">
+                                            <strong>Stündlich</strong> (jede Stunde)
+                                            <span className="radio-hint">z.B. 9:00, 10:00, 11:00...</span>
+                                        </span>
+                                    </label>
                                 </div>
-
-                                <div className="interval-settings">
-                                    <h3>
-                                        <Clock size={16} className="text-cyan-600" />
-                                        Zeitslot-Intervall
-                                    </h3>
-                                    <p>
-                                        Legen Sie fest, in welchem Rhythmus Termine angeboten werden sollen.
-                                    </p>
-
-                                    <div className="radio-group">
-                                        <label className={`radio-option ${(!settings.slot_interval_minutes || settings.slot_interval_minutes === 15) ? 'checked' : ''}`}>
-                                            <input
-                                                type="radio"
-                                                name="slotInterval"
-                                                value="15"
-                                                checked={(!settings.slot_interval_minutes || settings.slot_interval_minutes === 15)}
-                                                onChange={() => setSettings({ ...settings, slot_interval_minutes: 15 })}
-                                            />
-                                            <span className="radio-label">
-                                                <strong>Viertelstündlich</strong> (alle 15 Minuten)
-                                                <span className="radio-hint">z.B. 9:00, 9:15, 9:30...</span>
-                                            </span>
-                                        </label>
-
-                                        <label className={`radio-option ${settings.slot_interval_minutes === 30 ? 'checked' : ''}`}>
-                                            <input
-                                                type="radio"
-                                                name="slotInterval"
-                                                value="30"
-                                                checked={settings.slot_interval_minutes === 30}
-                                                onChange={() => setSettings({ ...settings, slot_interval_minutes: 30 })}
-                                            />
-                                            <span className="radio-label">
-                                                <strong>Halbstündlich</strong> (alle 30 Minuten)
-                                                <span className="radio-hint">z.B. 9:00, 9:30, 10:00...</span>
-                                            </span>
-                                        </label>
-
-                                        <label className={`radio-option ${settings.slot_interval_minutes === 60 ? 'checked' : ''}`}>
-                                            <input
-                                                type="radio"
-                                                name="slotInterval"
-                                                value="60"
-                                                checked={settings.slot_interval_minutes === 60}
-                                                onChange={() => setSettings({ ...settings, slot_interval_minutes: 60 })}
-                                            />
-                                            <span className="radio-label">
-                                                <strong>Stündlich</strong> (jede Stunde)
-                                                <span className="radio-hint">z.B. 9:00, 10:00, 11:00...</span>
-                                            </span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="form-group-section">
-                                <h2>Geschäftszeiten</h2>
-                                <p className="help-text">Legen Sie die täglichen Zeitfenster fest, in denen Termine gebucht werden können. Sie können mehrere Zeiträume pro Tag definieren (z.B. für eine Mittagspause).</p>
-                                <div className="business-hours-grid">
-                                    {weekDays
-                                        .filter(day => settings.available_days?.includes(day.id))
-                                        .map(day => (
-                                            <div key={day.id} className="business-hours-row">
-                                                <label className="day-label">{day.label}</label>
-                                                <div className="time-inputs-wrapper" style={{ flex: 1 }}>
-                                                    <TimeRangePicker
-                                                        periods={settings.business_hours?.[day.id]?.periods || []}
-                                                        onChange={(newPeriods) => updateBusinessHours(day.id, 'periods', newPeriods)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))
-                                    }
-                                </div>
-                                {settings.available_days?.length === 0 && (
-                                    <p className="empty-text">Bitte wählen Sie zuerst verfügbare Wochentage aus.</p>
-                                )}
-                            </div>
-
-                            <div className="actions-footer">
-                                <button className="btn-primary large" onClick={handleSaveSettings}>
-                                    <Save size={18} /> Einstellungen speichern
-                                </button>
                             </div>
                         </div>
-                    )}
 
-                    {/* --- BLOCKED PERIODS --- */}
-                    {activeTab === 'blocked' && (
-                        <div className="blocked-section">
-                            <div className="section-header">
-                                <h2>Urlaub & Abwesenheiten</h2>
-                                <button className="btn-primary" onClick={() => setIsBlockModalOpen(true)}>
-                                    <Plus size={18} /> Abwesenheit eintragen
-                                </button>
-                            </div>
-
-                            <div className="blocked-list">
-                                {blockedPeriods.length === 0 ? (
-                                    <p className="empty-text">Keine Abwesenheiten eingetragen.</p>
-                                ) : (
-                                    blockedPeriods.map(block => (
-                                        <div key={block.id} className="block-item">
-                                            <div className="block-dates">
-                                                <Calendar size={18} className="text-muted" />
-                                                <span>{new Date(block.start_date).toLocaleDateString()}</span>
-                                                <span className="arrow">→</span>
-                                                <span>{new Date(block.end_date).toLocaleDateString()}</span>
+                        <div className="form-group-section">
+                            <h2>Geschäftszeiten</h2>
+                            <p className="help-text">Legen Sie die täglichen Zeitfenster fest, in denen Termine gebucht werden können. Sie können mehrere Zeiträume pro Tag definieren (z.B. für eine Mittagspause).</p>
+                            <div className="business-hours-grid">
+                                {weekDays
+                                    .filter(day => settings.available_days?.includes(day.id))
+                                    .map(day => (
+                                        <div key={day.id} className="business-hours-row">
+                                            <label className="day-label">{day.label}</label>
+                                            <div className="time-inputs-wrapper" style={{ flex: 1 }}>
+                                                <TimeRangePicker
+                                                    periods={settings.business_hours?.[day.id]?.periods || []}
+                                                    onChange={(newPeriods) => updateBusinessHours(day.id, 'periods', newPeriods)}
+                                                />
                                             </div>
-                                            <div className="block-reason">
-                                                {block.reason || 'Kein Grund angegeben'}
-                                            </div>
-                                            <button className="btn-icon delete" onClick={() => handleDeleteBlock(block.id)}>
-                                                <Trash2 size={16} />
-                                            </button>
                                         </div>
                                     ))
-                                )}
+                                }
                             </div>
+                            {settings.available_days?.length === 0 && (
+                                <p className="empty-text">Bitte wählen Sie zuerst verfügbare Wochentage aus.</p>
+                            )}
                         </div>
-                    )}
-                </div>
+
+                        <div className="actions-footer">
+                            <button className="btn-primary large" onClick={handleSaveSettings}>
+                                <Save size={18} /> Einstellungen speichern
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* --- BLOCKED PERIODS --- */}
+                {activeTab === 'blocked' && (
+                    <div className="blocked-section">
+                        <div className="section-header">
+                            <h2>Urlaub & Abwesenheiten</h2>
+                            <button className="btn-primary" onClick={() => setIsBlockModalOpen(true)}>
+                                <Plus size={18} /> Abwesenheit eintragen
+                            </button>
+                        </div>
+
+                        <div className="blocked-list">
+                            {blockedPeriods.length === 0 ? (
+                                <p className="empty-text">Keine Abwesenheiten eingetragen.</p>
+                            ) : (
+                                blockedPeriods.map(block => (
+                                    <div key={block.id} className="block-item">
+                                        <div className="block-dates">
+                                            <Calendar size={18} className="text-muted" />
+                                            <span>{new Date(block.start_date).toLocaleDateString()}</span>
+                                            <span className="arrow">→</span>
+                                            <span>{new Date(block.end_date).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="block-reason">
+                                            {block.reason || 'Kein Grund angegeben'}
+                                        </div>
+                                        <button className="btn-icon delete" onClick={() => handleDeleteBlock(block.id)}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
+
 
             {/* --- MODALS --- */}
             <AnimatePresence>
+                {/* ... existing modal code ... */}
                 {isTypeModalOpen && (
                     <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <div className="modal-content">
@@ -835,8 +767,10 @@ const TerminToolSettings = () => {
                 .radio-label { display: flex; flex-direction: column; font-size: 0.95rem; color: #334155; gap: 0.2rem; }
                 .radio-hint { font-size: 0.8rem; color: #64748b; font-weight: 400; }
             `}</style>
-        </AdminLayout>
+        </div>
     );
+
+    return embedded ? content : <AdminLayout>{content}</AdminLayout>;
 };
 
 export default TerminToolSettings;

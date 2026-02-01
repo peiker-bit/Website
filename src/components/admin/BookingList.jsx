@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, Search, Filter, Trash2, X,
     User, Mail, Phone, MapPin, ChevronLeft, ChevronRight,
-    Loader2, CheckCircle, XCircle, AlertCircle
+    Loader2, CheckCircle, XCircle, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { subscribeToBookings, deleteBooking, updateBookingStatus, cancelBooking } from '../../lib/bookingClient';
 import { supabase } from '../../lib/supabaseClient';
@@ -19,9 +19,11 @@ const BookingList = () => {
     const [cancellationReason, setCancellationReason] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0); // For manual refresh
     const bookingsPerPage = 20;
 
     useEffect(() => {
+        setLoading(true);
         // Subscribe to real-time updates
         const unsubscribe = subscribeToBookings((data) => {
             setBookings(data);
@@ -29,7 +31,7 @@ const BookingList = () => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [refreshKey]);
 
     useEffect(() => {
         // Filter and search bookings
@@ -77,11 +79,18 @@ const BookingList = () => {
     const handleDelete = async (bookingId) => {
         try {
             await deleteBooking(bookingId);
+            // Optimistic update / Immediate removal from UI
+            setBookings(prev => prev.filter(b => b.id !== bookingId));
             setDeleteConfirm(null);
             setSelectedBooking(null);
         } catch (error) {
             console.error('Error deleting booking:', error);
+            alert(`Fehler beim Löschen der Buchung: ${error.message}`);
         }
+    };
+
+    const handleRefresh = () => {
+        setRefreshKey(prev => prev + 1);
     };
 
     const handleStatusUpdate = async (bookingId, newStatus) => {
@@ -141,12 +150,47 @@ const BookingList = () => {
         }
     };
 
+    const downloadCSV = () => {
+        if (!filteredBookings.length) {
+            alert("Keine Daten zum Exportieren.");
+            return;
+        }
+
+        const headers = ["ID", "Kunde", "E-Mail", "Telefon", "Datum", "Uhrzeit", "Service", "Status", "Nachricht"];
+        const rows = filteredBookings.map(b => {
+            const bookingDate = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+            return [
+                b.id,
+                `"${(b.name || '').replace(/"/g, '""')}"`,
+                `"${(b.email || '').replace(/"/g, '""')}"`,
+                `"${(b.phone || '').replace(/"/g, '""')}"`,
+                bookingDate.toLocaleDateString('de-DE'),
+                b.time || '',
+                `"${(b.service || '').replace(/"/g, '""')}"`,
+                b.status || '',
+                `"${(b.message || '').replace(/"/g, '""')}"`
+            ];
+        });
+
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + headers.join(",") + "\n"
+            + rows.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `buchungen_export_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     if (loading) {
         return (
             <AdminLayout>
                 <div className="loading-container">
                     <Loader2 size={48} className="spin-icon" />
-                    <p>Buchungen werden geladen...</p>
+                    <p>Lade Buchungen...</p>
                 </div>
             </AdminLayout>
         );
@@ -160,6 +204,14 @@ const BookingList = () => {
                     <div>
                         <h1>Terminbuchungen</h1>
                         <p>{filteredBookings.length} {filterStatus === 'all' ? 'Aktive' : filterStatus === 'confirmed' ? 'Bestätigte' : filterStatus === 'pending' ? 'Offene' : filterStatus === 'cancelled' ? 'Stornierte' : 'Archivierte'}</p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button className="btn-secondary" onClick={handleRefresh} title="Liste aktualisieren">
+                            <RefreshCw size={18} />
+                        </button>
+                        <button className="btn-secondary" onClick={downloadCSV}>
+                            Daten exportieren (CSV)
+                        </button>
                     </div>
                 </div>
 

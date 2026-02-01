@@ -128,11 +128,6 @@ function App() {
               <Settings />
             </ProtectedRoute>
           } />
-          <Route path="/admin/termintool" element={
-            <ProtectedRoute>
-              <TerminToolSettings />
-            </ProtectedRoute>
-          } />
         </Routes>
       </div>
     </Router>

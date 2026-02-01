@@ -1,403 +1,435 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Mail, MailOpen, Search, Filter, Trash2, X,
-    ExternalLink, Calendar, User, AtSign, MessageSquare,
-    ChevronLeft, ChevronRight, Loader2, Check
+  Mail, MailOpen, Search, Filter, Trash2, X,
+  ExternalLink, Calendar, User, AtSign, MessageSquare,
+  ChevronLeft, ChevronRight, Loader2, Check
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import AdminLayout from './AdminLayout';
 
 const MessageList = () => {
-    const [messages, setMessages] = useState([]);
-    const [filteredMessages, setFilteredMessages] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all'); // all, read, unread
-    const [selectedMessage, setSelectedMessage] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [deleteConfirm, setDeleteConfirm] = useState(null);
-    const messagesPerPage = 20;
+  const [messages, setMessages] = useState([]);
+  const [filteredMessages, setFilteredMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all, read, unread
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const messagesPerPage = 20;
 
-    useEffect(() => {
+  useEffect(() => {
+    fetchMessages();
+
+    // Subscribe to real-time updates
+    const subscription = supabase
+      .channel('messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, () => {
         fetchMessages();
+      })
+      .subscribe();
 
-        // Subscribe to real-time updates
-        const subscription = supabase
-            .channel('messages')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, () => {
-                fetchMessages();
-            })
-            .subscribe();
-
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, []);
-
-    useEffect(() => {
-        // Filter and search messages
-        let result = messages;
-
-        // Apply status filter
-        if (filterStatus === 'read') {
-            result = result.filter(m => m.is_read);
-        } else if (filterStatus === 'unread') {
-            result = result.filter(m => !m.is_read);
-        }
-
-        // Apply search
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase();
-            result = result.filter(m =>
-                m.name.toLowerCase().includes(term) ||
-                m.email.toLowerCase().includes(term) ||
-                m.message.toLowerCase().includes(term)
-            );
-        }
-
-        setFilteredMessages(result);
-        setCurrentPage(1); // Reset to first page on filter change
-    }, [messages, searchTerm, filterStatus]);
-
-    const fetchMessages = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('contact_messages')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setMessages(data || []);
-        } catch (error) {
-            console.error('Error fetching messages:', error);
-        } finally {
-            setLoading(false);
-        }
+    return () => {
+      subscription.unsubscribe();
     };
+  }, []);
 
-    const toggleReadStatus = async (messageId, currentStatus) => {
-        try {
-            const { error } = await supabase
-                .from('contact_messages')
-                .update({ is_read: !currentStatus })
-                .eq('id', messageId);
+  useEffect(() => {
+    // Filter and search messages
+    let result = messages;
 
-            if (error) throw error;
-            fetchMessages();
-        } catch (error) {
-            console.error('Error updating message:', error);
-        }
-    };
-
-    const deleteMessage = async (messageId) => {
-        try {
-            const { error } = await supabase
-                .from('contact_messages')
-                .delete()
-                .eq('id', messageId);
-
-            if (error) throw error;
-            setDeleteConfirm(null);
-            setSelectedMessage(null);
-            fetchMessages();
-        } catch (error) {
-            console.error('Error deleting message:', error);
-        }
-    };
-
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    // Pagination
-    const indexOfLastMessage = currentPage * messagesPerPage;
-    const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
-    const currentMessages = filteredMessages.slice(indexOfFirstMessage, indexOfLastMessage);
-    const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
-
-    if (loading) {
-        return (
-            <AdminLayout>
-                <div className="loading-container">
-                    <Loader2 size={48} className="spin-icon" />
-                    <p>Nachrichten werden geladen...</p>
-                </div>
-            </AdminLayout>
-        );
+    // Apply status filter
+    if (filterStatus === 'read') {
+      result = result.filter(m => m.is_read);
+    } else if (filterStatus === 'unread') {
+      result = result.filter(m => !m.is_read);
     }
 
+    // Apply search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(m =>
+        m.name.toLowerCase().includes(term) ||
+        m.email.toLowerCase().includes(term) ||
+        m.message.toLowerCase().includes(term)
+      );
+    }
+
+    setFilteredMessages(result);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [messages, searchTerm, filterStatus]);
+
+  const fetchMessages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleReadStatus = async (messageId, currentStatus) => {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .update({ is_read: !currentStatus })
+        .eq('id', messageId);
+
+      if (error) throw error;
+      fetchMessages();
+    } catch (error) {
+      console.error('Error updating message:', error);
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+      setDeleteConfirm(null);
+      setSelectedMessage(null);
+      fetchMessages();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Pagination
+  const indexOfLastMessage = currentPage * messagesPerPage;
+  const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
+  const currentMessages = filteredMessages.slice(indexOfFirstMessage, indexOfLastMessage);
+  const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
+
+  const downloadCSV = () => {
+    if (!filteredMessages.length) {
+      alert("Keine Nachrichten zum Exportieren.");
+      return;
+    }
+
+    const headers = ["ID", "Name", "E-Mail", "Datum", "Nachricht", "Gelesen"];
+    const rows = filteredMessages.map(m => [
+      m.id,
+      `"${(m.name || '').replace(/"/g, '""')}"`,
+      `"${(m.email || '').replace(/"/g, '""')}"`,
+      new Date(m.created_at).toLocaleString('de-DE'),
+      `"${(m.message || '').replace(/"/g, '""')}"`,
+      m.is_read ? "Ja" : "Nein"
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8,"
+      + headers.join(",") + "\n"
+      + rows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `nachrichten_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (loading) {
     return (
-        <AdminLayout>
-            <div className="messages-container">
-                {/* Header */}
-                <div className="messages-header">
-                    <div>
-                        <h1>Nachrichten</h1>
-                        <p>{filteredMessages.length} {filterStatus === 'all' ? 'Gesamt' : filterStatus === 'read' ? 'Gelesene' : 'Ungelesene'}</p>
+      <AdminLayout>
+        <div className="loading-container">
+          <Loader2 size={48} className="spin-icon" />
+          <p>Nachrichten werden geladen...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <div className="messages-container">
+        {/* Header */}
+        <div className="messages-header">
+          <div>
+            <h1>Nachrichten</h1>
+            <p>{filteredMessages.length} {filterStatus === 'all' ? 'Gesamt' : filterStatus === 'read' ? 'Gelesene' : 'Ungelesene'}</p>
+          </div>
+          <button className="btn-secondary" onClick={downloadCSV} style={{ padding: '0.6rem 1.2rem', fontWeight: 600 }}>
+            Exportieren (CSV)
+          </button>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="controls-bar">
+          <div className="search-box">
+            <Search size={20} />
+            <input
+              type="text"
+              placeholder="Suchen nach Name, E-Mail oder Nachricht..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button className="clear-search" onClick={() => setSearchTerm('')}>
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="filter-buttons">
+            <button
+              className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
+              onClick={() => setFilterStatus('all')}
+            >
+              Alle
+            </button>
+            <button
+              className={`filter-btn ${filterStatus === 'unread' ? 'active' : ''}`}
+              onClick={() => setFilterStatus('unread')}
+            >
+              Ungelesen
+            </button>
+            <button
+              className={`filter-btn ${filterStatus === 'read' ? 'active' : ''}`}
+              onClick={() => setFilterStatus('read')}
+            >
+              Gelesen
+            </button>
+          </div>
+        </div>
+
+        {/* Messages List */}
+        {currentMessages.length === 0 ? (
+          <div className="empty-state">
+            <Mail size={64} />
+            <h3>Keine Nachrichten gefunden</h3>
+            <p>
+              {searchTerm || filterStatus !== 'all'
+                ? 'Versuchen Sie, Ihre Filter zu ändern.'
+                : 'Es sind noch keine Kontaktnachrichten vorhanden.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="messages-list">
+              {currentMessages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={`message-card ${!message.is_read ? 'unread' : ''}`}
+                  onClick={() => setSelectedMessage(message)}
+                >
+                  <div className="message-card-icon">
+                    {message.is_read ? <MailOpen size={24} /> : <Mail size={24} />}
+                  </div>
+
+                  <div className="message-card-content">
+                    <div className="message-card-header">
+                      <h3>{message.name}</h3>
+                      <span className="message-date">
+                        <Calendar size={14} />
+                        {formatDate(message.created_at)}
+                      </span>
                     </div>
-                </div>
-
-                {/* Filters and Search */}
-                <div className="controls-bar">
-                    <div className="search-box">
-                        <Search size={20} />
-                        <input
-                            type="text"
-                            placeholder="Suchen nach Name, E-Mail oder Nachricht..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        {searchTerm && (
-                            <button className="clear-search" onClick={() => setSearchTerm('')}>
-                                <X size={16} />
-                            </button>
-                        )}
+                    <div className="message-email">{message.email}</div>
+                    <div className="message-preview">
+                      {message.message.substring(0, 150)}
+                      {message.message.length > 150 ? '...' : ''}
                     </div>
+                  </div>
 
-                    <div className="filter-buttons">
-                        <button
-                            className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
-                            onClick={() => setFilterStatus('all')}
-                        >
-                            Alle
-                        </button>
-                        <button
-                            className={`filter-btn ${filterStatus === 'unread' ? 'active' : ''}`}
-                            onClick={() => setFilterStatus('unread')}
-                        >
-                            Ungelesen
-                        </button>
-                        <button
-                            className={`filter-btn ${filterStatus === 'read' ? 'active' : ''}`}
-                            onClick={() => setFilterStatus('read')}
-                        >
-                            Gelesen
-                        </button>
-                    </div>
-                </div>
-
-                {/* Messages List */}
-                {currentMessages.length === 0 ? (
-                    <div className="empty-state">
-                        <Mail size={64} />
-                        <h3>Keine Nachrichten gefunden</h3>
-                        <p>
-                            {searchTerm || filterStatus !== 'all'
-                                ? 'Versuchen Sie, Ihre Filter zu ändern.'
-                                : 'Es sind noch keine Kontaktnachrichten vorhanden.'}
-                        </p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="messages-list">
-                            {currentMessages.map((message) => (
-                                <motion.div
-                                    key={message.id}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className={`message-card ${!message.is_read ? 'unread' : ''}`}
-                                    onClick={() => setSelectedMessage(message)}
-                                >
-                                    <div className="message-card-icon">
-                                        {message.is_read ? <MailOpen size={24} /> : <Mail size={24} />}
-                                    </div>
-
-                                    <div className="message-card-content">
-                                        <div className="message-card-header">
-                                            <h3>{message.name}</h3>
-                                            <span className="message-date">
-                                                <Calendar size={14} />
-                                                {formatDate(message.created_at)}
-                                            </span>
-                                        </div>
-                                        <div className="message-email">{message.email}</div>
-                                        <div className="message-preview">
-                                            {message.message.substring(0, 150)}
-                                            {message.message.length > 150 ? '...' : ''}
-                                        </div>
-                                    </div>
-
-                                    <div className="message-card-actions" onClick={(e) => e.stopPropagation()}>
-                                        <button
-                                            className="action-btn"
-                                            onClick={() => toggleReadStatus(message.id, message.is_read)}
-                                            title={message.is_read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}
-                                        >
-                                            {message.is_read ? <Mail size={18} /> : <Check size={18} />}
-                                        </button>
-                                        <button
-                                            className="action-btn delete"
-                                            onClick={() => setDeleteConfirm(message.id)}
-                                            title="Löschen"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="pagination">
-                                <button
-                                    className="pagination-btn"
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    <ChevronLeft size={20} />
-                                    Zurück
-                                </button>
-                                <span className="pagination-info">
-                                    Seite {currentPage} von {totalPages}
-                                </span>
-                                <button
-                                    className="pagination-btn"
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    Weiter
-                                    <ChevronRight size={20} />
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
-
-                {/* Message Detail Modal */}
-                <AnimatePresence>
-                    {selectedMessage && (
-                        <motion.div
-                            className="modal-overlay"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedMessage(null)}
-                        >
-                            <motion.div
-                                className="modal-content"
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.9, opacity: 0 }}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="modal-header">
-                                    <h2>Nachricht Details</h2>
-                                    <button className="modal-close" onClick={() => setSelectedMessage(null)}>
-                                        <X size={24} />
-                                    </button>
-                                </div>
-
-                                <div className="modal-body">
-                                    <div className="detail-item">
-                                        <div className="detail-label">
-                                            <User size={18} />
-                                            Name
-                                        </div>
-                                        <div className="detail-value">{selectedMessage.name}</div>
-                                    </div>
-
-                                    <div className="detail-item">
-                                        <div className="detail-label">
-                                            <AtSign size={18} />
-                                            E-Mail
-                                        </div>
-                                        <div className="detail-value">
-                                            <a href={`mailto:${selectedMessage.email}`}>{selectedMessage.email}</a>
-                                        </div>
-                                    </div>
-
-                                    <div className="detail-item">
-                                        <div className="detail-label">
-                                            <Calendar size={18} />
-                                            Datum
-                                        </div>
-                                        <div className="detail-value">{formatDate(selectedMessage.created_at)}</div>
-                                    </div>
-
-                                    <div className="detail-item full-width">
-                                        <div className="detail-label">
-                                            <MessageSquare size={18} />
-                                            Nachricht
-                                        </div>
-                                        <div className="detail-value message-text">{selectedMessage.message}</div>
-                                    </div>
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button
-                                        className="modal-btn secondary"
-                                        onClick={() => toggleReadStatus(selectedMessage.id, selectedMessage.is_read)}
-                                    >
-                                        {selectedMessage.is_read ? <Mail size={18} /> : <Check size={18} />}
-                                        {selectedMessage.is_read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}
-                                    </button>
-                                    <a
-                                        href={`mailto:${selectedMessage.email}`}
-                                        className="modal-btn primary"
-                                    >
-                                        <ExternalLink size={18} />
-                                        Per E-Mail antworten
-                                    </a>
-                                    <button
-                                        className="modal-btn delete"
-                                        onClick={() => setDeleteConfirm(selectedMessage.id)}
-                                    >
-                                        <Trash2 size={18} />
-                                        Löschen
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Delete Confirmation Modal */}
-                <AnimatePresence>
-                    {deleteConfirm && (
-                        <motion.div
-                            className="modal-overlay"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setDeleteConfirm(null)}
-                        >
-                            <motion.div
-                                className="confirm-modal"
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.9, opacity: 0 }}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <div className="confirm-icon">
-                                    <Trash2 size={32} />
-                                </div>
-                                <h3>Nachricht löschen?</h3>
-                                <p>Diese Aktion kann nicht rückgängig gemacht werden.</p>
-                                <div className="confirm-actions">
-                                    <button className="confirm-btn cancel" onClick={() => setDeleteConfirm(null)}>
-                                        Abbrechen
-                                    </button>
-                                    <button className="confirm-btn delete" onClick={() => deleteMessage(deleteConfirm)}>
-                                        Löschen
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                  <div className="message-card-actions" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      className="action-btn"
+                      onClick={() => toggleReadStatus(message.id, message.is_read)}
+                      title={message.is_read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}
+                    >
+                      {message.is_read ? <Mail size={18} /> : <Check size={18} />}
+                    </button>
+                    <button
+                      className="action-btn delete"
+                      onClick={() => setDeleteConfirm(message.id)}
+                      title="Löschen"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
             </div>
 
-            <style>{`
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft size={20} />
+                  Zurück
+                </button>
+                <span className="pagination-info">
+                  Seite {currentPage} von {totalPages}
+                </span>
+                <button
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Weiter
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Message Detail Modal */}
+        <AnimatePresence>
+          {selectedMessage && (
+            <motion.div
+              className="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedMessage(null)}
+            >
+              <motion.div
+                className="modal-content"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="modal-header">
+                  <h2>Nachricht Details</h2>
+                  <button className="modal-close" onClick={() => setSelectedMessage(null)}>
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="modal-body">
+                  <div className="detail-item">
+                    <div className="detail-label">
+                      <User size={18} />
+                      Name
+                    </div>
+                    <div className="detail-value">{selectedMessage.name}</div>
+                  </div>
+
+                  <div className="detail-item">
+                    <div className="detail-label">
+                      <AtSign size={18} />
+                      E-Mail
+                    </div>
+                    <div className="detail-value">
+                      <a href={`mailto:${selectedMessage.email}`}>{selectedMessage.email}</a>
+                    </div>
+                  </div>
+
+                  <div className="detail-item">
+                    <div className="detail-label">
+                      <Calendar size={18} />
+                      Datum
+                    </div>
+                    <div className="detail-value">{formatDate(selectedMessage.created_at)}</div>
+                  </div>
+
+                  <div className="detail-item full-width">
+                    <div className="detail-label">
+                      <MessageSquare size={18} />
+                      Nachricht
+                    </div>
+                    <div className="detail-value message-text">{selectedMessage.message}</div>
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button
+                    className="modal-btn secondary"
+                    onClick={() => toggleReadStatus(selectedMessage.id, selectedMessage.is_read)}
+                  >
+                    {selectedMessage.is_read ? <Mail size={18} /> : <Check size={18} />}
+                    {selectedMessage.is_read ? 'Als ungelesen markieren' : 'Als gelesen markieren'}
+                  </button>
+                  <a
+                    href={`mailto:${selectedMessage.email}`}
+                    className="modal-btn primary"
+                  >
+                    <ExternalLink size={18} />
+                    Per E-Mail antworten
+                  </a>
+                  <button
+                    className="modal-btn delete"
+                    onClick={() => setDeleteConfirm(selectedMessage.id)}
+                  >
+                    <Trash2 size={18} />
+                    Löschen
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {deleteConfirm && (
+            <motion.div
+              className="modal-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteConfirm(null)}
+            >
+              <motion.div
+                className="confirm-modal"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="confirm-icon">
+                  <Trash2 size={32} />
+                </div>
+                <h3>Nachricht löschen?</h3>
+                <p>Diese Aktion kann nicht rückgängig gemacht werden.</p>
+                <div className="confirm-actions">
+                  <button className="confirm-btn cancel" onClick={() => setDeleteConfirm(null)}>
+                    Abbrechen
+                  </button>
+                  <button className="confirm-btn delete" onClick={() => deleteMessage(deleteConfirm)}>
+                    Löschen
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <style>{`
         .messages-container {
           max-width: 1400px;
           margin: 0 auto;
@@ -944,8 +976,8 @@ const MessageList = () => {
           }
         }
       `}</style>
-        </AdminLayout>
-    );
+    </AdminLayout>
+  );
 };
 
 export default MessageList;

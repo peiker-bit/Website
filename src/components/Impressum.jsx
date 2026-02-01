@@ -59,19 +59,7 @@ const Impressum = () => {
                         </ul>
                     </div>
 
-                    <div className="impressum-section">
-                        <h3>in Bürogemeinschaft mit:</h3>
-                        <p>
-                            Wido Fischer<br />
-                            Rechtsanwalt<br />
-                            Fachanwalt für Strafrecht
-                        </p>
-                        <p>
-                            Telefon: 0741/20 90 8800<br />
-                            Web: <a href="https://Anwalt-Rottweil.de" target="_blank" rel="noopener noreferrer">Anwalt-Rottweil.de</a><br />
-                            Mail: <a href="mailto:Info@Anwalt-Rottweil.de">Info@Anwalt-Rottweil.de</a>
-                        </p>
-                    </div>
+
 
                     <section>
                         <h3>1. Haftungsausschluss</h3>

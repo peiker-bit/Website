@@ -32,7 +32,6 @@ const AdminLayout = ({ children }) => {
     { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { path: '/admin/messages', icon: <Mail size={20} />, label: 'Nachrichten' },
     { path: '/admin/bookings', icon: <Calendar size={20} />, label: 'Buchungen' },
-    { path: '/admin/termintool', icon: <Calendar size={20} />, label: 'Termintool' }, // Reusing Calendar or need a new icon? Using Calendar is fine or maybe Settings-like?
     { path: '/admin/settings', icon: <Settings size={20} />, label: 'Einstellungen' },
   ];
 

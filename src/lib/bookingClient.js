@@ -107,13 +107,26 @@ export const updateBookingStatus = async (id, status, reason = null) => {
 const TERMINTOOL_API_URL = import.meta.env.VITE_TERMINTOOL_API_URL || 'http://localhost:3000/api/admin/cancel-booking';
 
 export const cancelBooking = async (id, reason, token) => {
-    if (!token) throw new Error("No authentication token provided");
+    // If we have a local supabase client (for the main project), we can use it to invoke functions
+    // But since this file is bookingClient (secondary), we might need the main supabase client import
+    // or just use fetch directly to the function URL if we can construct it.
 
-    const response = await fetch(TERMINTOOL_API_URL, {
+    // Better approach: Use the main supabase client imported from lib/supabaseClient
+    // We need to import it at the top.
+
+    // For now, let's use fetch with the project URL constructed from env vars
+    // assuming format: https://<project_ref>.supabase.co/functions/v1/cancel-booking
+
+    const MAIN_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const FUNCTION_URL = `${MAIN_SUPABASE_URL}/functions/v1/cancel-booking`;
+
+    console.log("Calling cancel function:", FUNCTION_URL);
+
+    const response = await fetch(FUNCTION_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}` // Use the auth token from the main app (admin)
         },
         body: JSON.stringify({
             bookingId: id,
