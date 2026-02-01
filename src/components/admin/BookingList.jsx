@@ -14,7 +14,7 @@ const BookingList = () => {
     const [filteredBookings, setFilteredBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterStatus, setFilterStatus] = useState('all'); // all, pending, confirmed, cancelled
+    const [filterStatus, setFilterStatus] = useState('all'); // all, pending, confirmed, cancelled, archive
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [cancellationReason, setCancellationReason] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -35,11 +35,28 @@ const BookingList = () => {
         // Filter and search bookings
         let result = bookings;
 
-        // Apply status filter
+        // Calculate date threshold (7 days ago)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        // Apply status and date filter
         if (filterStatus === 'all') {
-            // Show all EXCEPT cancelled by default
-            result = result.filter(b => b.status !== 'cancelled' && b.status !== 'canceled');
+            // Show active bookings: not cancelled AND not too old
+            result = result.filter(b => {
+                const isCancelled = b.status === 'cancelled' || b.status === 'canceled';
+                const bookingDate = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                const isRecent = bookingDate >= sevenDaysAgo;
+                return !isCancelled && isRecent;
+            });
+        } else if (filterStatus === 'archive') {
+            // Show old bookings (older than 7 days)
+            result = result.filter(b => {
+                const bookingDate = b.date?.toDate ? b.date.toDate() : new Date(b.date);
+                return bookingDate < sevenDaysAgo;
+            });
         } else {
+            // Show bookings with specific status
             result = result.filter(b => b.status === filterStatus);
         }
 
@@ -142,7 +159,7 @@ const BookingList = () => {
                 <div className="bookings-header">
                     <div>
                         <h1>Terminbuchungen</h1>
-                        <p>{filteredBookings.length} {filterStatus === 'all' ? 'Aktive' : filterStatus === 'confirmed' ? 'Bestätigte' : filterStatus === 'pending' ? 'Offene' : 'Stornierte'}</p>
+                        <p>{filteredBookings.length} {filterStatus === 'all' ? 'Aktive' : filterStatus === 'confirmed' ? 'Bestätigte' : filterStatus === 'pending' ? 'Offene' : filterStatus === 'cancelled' ? 'Stornierte' : 'Archivierte'}</p>
                     </div>
                 </div>
 
@@ -187,6 +204,12 @@ const BookingList = () => {
                             onClick={() => setFilterStatus('cancelled')}
                         >
                             Storniert
+                        </button>
+                        <button
+                            className={`filter-btn ${filterStatus === 'archive' ? 'active' : ''}`}
+                            onClick={() => setFilterStatus('archive')}
+                        >
+                            Archiv
                         </button>
                     </div>
                 </div>

@@ -53,6 +53,11 @@ const AdminDashboard = () => {
     const todayStart = new Date(now.setHours(0, 0, 0, 0));
     const todayEnd = new Date(now.setHours(23, 59, 59, 999));
 
+    // Calculate 7 days ago for filtering old bookings
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
     const todayCount = bookings.filter(b => {
       const d = b.date?.toDate ? b.date.toDate() : new Date(b.date);
       return d >= todayStart && d <= todayEnd;
@@ -71,11 +76,12 @@ const AdminDashboard = () => {
       upcomingBookings: upcoming
     }));
 
-    // Filter for recent bookings: upcoming and not cancelled
+    // Filter for recent bookings: upcoming, not cancelled, and not older than 7 days
     const activeBookings = bookings.filter(b => {
       const d = b.date?.toDate ? b.date.toDate() : new Date(b.date);
       const isCancelled = b.status === 'cancelled' || b.status === 'canceled';
-      return d >= new Date() && !isCancelled;
+      const isRecent = d >= sevenDaysAgo;
+      return d >= new Date() && !isCancelled && isRecent;
     }).sort((a, b) => {
       const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date);
       const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date);

@@ -65,13 +65,26 @@ export const subscribeToBookings = (callback) => {
 };
 
 export const deleteBooking = async (id) => {
-    if (!bookingSupabase) return;
-    const { error } = await bookingSupabase
+    if (!bookingSupabase) {
+        console.error('❌ Booking Supabase client not initialized');
+        throw new Error('Booking database connection not configured');
+    }
+
+    console.log('🗑️ Deleting booking:', id);
+
+    const { data, error } = await bookingSupabase
         .from(COLLECTION_NAME)
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-    if (error) throw error;
+    if (error) {
+        console.error('❌ Error deleting booking:', error);
+        throw error;
+    }
+
+    console.log('✅ Booking deleted successfully:', data);
+    return data;
 };
 
 export const updateBookingStatus = async (id, status, reason = null) => {
