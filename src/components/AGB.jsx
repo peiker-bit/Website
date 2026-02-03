@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import SEO from './SEO';
 
 const AGB = () => {
     // Scroll to top on mount
@@ -8,6 +9,13 @@ const AGB = () => {
 
     return (
         <div className="agb-page">
+            <SEO
+                title="AGB"
+                description="Allgemeine Geschäftsbedingungen der Peiker Steuerberatung für Steuerberater und steuerberatende Berufsausübungsgesellschaften."
+                url="/agb"
+                keywords="AGB, Allgemeine Geschäftsbedingungen, Steuerberater, Vertragsbedingungen"
+                robots="noindex, follow"
+            />
             <div className="container">
                 <div className="agb-content">
                     <h1>Allgemeine Geschäftsbedingungen</h1>

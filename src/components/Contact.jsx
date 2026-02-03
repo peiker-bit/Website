@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ScrollReveal from './ui/ScrollReveal';
 import { supabase } from '../lib/supabaseClient';
+import SEO from './SEO';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -84,6 +85,11 @@ const Contact = () => {
 
   return (
     <section id="contact" className="section bg-light">
+      <SEO
+        title="Kontakt"
+        description="Kontaktieren Sie uns für eine persönliche Beratung. Vereinbaren Sie einfach online einen Termin oder rufen Sie uns an."
+        url="/kontakt"
+      />
       <div className="container">
         <div className="contact-wrapper">
           <div className="contact-info">

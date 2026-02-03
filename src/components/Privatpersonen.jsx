@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
-import { ArrowRight, CheckCircle, Upload, Shield, Users, HelpCircle, FileText, Home, PieChart } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Fingerprint, Home, PiggyBank, GraduationCap, HeartHandshake } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import SEO from './SEO';
 
 const Privatpersonen = () => {
     useEffect(() => {
@@ -8,6 +10,13 @@ const Privatpersonen = () => {
 
     return (
         <div className="privatpersonen-page">
+            <SEO
+                title="Steuerberatung für Privatpersonen"
+                description="Individuelle Steuerberatung für Arbeitnehmer, Rentner und Vermieter. Wir optimieren Ihre Steuererklärung und beraten Sie persönlich."
+                url="/privatpersonen"
+                keywords="Steuererklärung, Einkommensteuer, Rentenbesteuerung, Vermietung und Verpachtung, Erbschaftsteuer"
+            />
+
             {/* Hero Section */}
             <section className="hero section">
                 <div className="container">

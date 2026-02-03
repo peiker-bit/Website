@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import SEO from './SEO';
 
 const Impressum = () => {
     // Scroll to top on mount
@@ -8,6 +9,12 @@ const Impressum = () => {
 
     return (
         <div className="impressum-page">
+            <SEO
+                title="Impressum"
+                description="Impressum der Peiker Steuerberatung. Angaben gemäß § 5 TMG."
+                url="/impressum"
+                robots="noindex, follow"
+            />
             <div className="container">
                 <div className="impressum-content">
                     <h1>Impressum</h1>

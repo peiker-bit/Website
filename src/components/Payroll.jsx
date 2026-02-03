@@ -1,19 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-    ArrowRight,
-    CheckCircle,
-    Upload,
-    Shield,
-    Users,
-    HelpCircle,
-    Calendar,
-    FileText,
-    Euro,
-    Clock,
-    Lock,
-    ChevronDown,
-    ChevronUp
-} from 'lucide-react';
+import { CheckCircle2, Calculator, FileText, PieChart, Shield, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import SEO from './SEO';
 import { motion } from 'framer-motion';
 
 const PayrollAnimation = () => {
@@ -38,7 +25,7 @@ const PayrollAnimation = () => {
 
             {/* Floating Income/Doc Icons */}
             <div className=" floating-icons">
-                {[Euro, FileText, CheckCircle, Clock, Shield].map((Icon, index) => (
+                {[Calculator, FileText, CheckCircle2, Clock, Shield].map((Icon, index) => (
                     <motion.div
                         key={index}
                         className="floating-icon"
@@ -126,6 +113,13 @@ const Payroll = () => {
 
     return (
         <div className="payroll-page">
+            <SEO
+                title="Lohnbuchhaltung"
+                description="Professionelle Lohnbuchhaltung für Ihr Unternehmen. Wir übernehmen Abrechnungen, Meldungen und beraten Sie zu steuerfreien Extras."
+                url="/lohn"
+                keywords="Lohnbuchhaltung, Gehaltsabrechnung, Baulohn, Lohnsteuer, Sozialversicherung, Nettolohnoptimierung"
+            />
+
             {/* Hero Section */}
             <section className="payroll-hero section">
                 <PayrollAnimation />

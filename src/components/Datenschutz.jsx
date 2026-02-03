@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import SEO from './SEO';
 
 const Datenschutz = () => {
     // Scroll to top on mount
@@ -8,6 +9,12 @@ const Datenschutz = () => {
 
     return (
         <div className="datenschutz-page">
+            <SEO
+                title="Datenschutz"
+                description="Datenschutzerklärung der Peiker Steuerberatung. Informationen zur Erhebung und Verarbeitung Ihrer personenbezogenen Daten."
+                url="/datenschutz"
+                keywords="Datenschutz, Datenschutzerklärung, DSGVO, Privatsphäre, Datenverarbeitung"
+            />
             <div className="container">
                 <div className="datenschutz-content">
                     <h1>Datenschutzerklärung</h1>

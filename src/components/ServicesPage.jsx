@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Calculator, TrendingUp, Users, FileText, PieChart, Briefcase, CheckCircle, ArrowRight } from 'lucide-react';
+import SEO from './SEO';
 import { motion } from 'framer-motion';
 
 const services = [
@@ -42,6 +43,12 @@ const ServicesPage = () => {
 
     return (
         <div className="services-page">
+            <SEO
+                title="Unsere Leistungen"
+                description="Umfassende Steuerberatung für Unternehmen und Privatpersonen. Entdecken Sie unsere Leistungen von Lohnbuchhaltung bis zur digitalen Zusammenarbeit."
+                url="/leistungen"
+            />
+
             <section className="page-hero section">
                 <div className="container text-center">
                     <h1 className="hero-title fade-in">Unsere Leistungen</h1>
