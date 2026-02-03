@@ -22,9 +22,12 @@ import Settings from './components/admin/Settings';
 import TerminToolSettings from './components/admin/TerminToolSettings';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
+import CookieBanner from './components/CookieBanner';
+
 function App() {
   return (
     <Router>
+      <CookieBanner />
       <div className="app">
         <Routes>
           {/* Public Routes */}

@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, setAnalyticsCollectionEnabled } from "firebase/analytics";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB1bd9bHck2PRJCtCCOGwiH9wF0RsmFoJE",
@@ -12,8 +12,16 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-export { app, analytics };
+// Disable analytics by default
+setAnalyticsCollectionEnabled(analytics, false);
+
+const enableAnalytics = () => {
+    setAnalyticsCollectionEnabled(analytics, true);
+};
+
+export { app, analytics, enableAnalytics };
 
