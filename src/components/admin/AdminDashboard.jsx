@@ -399,15 +399,26 @@ const AdminDashboard = () => {
                       </div>
                       <div className="list-item-content">
                         <div className="list-item-top">
-                          <span className="list-item-title">{booking.service || 'Termin'}</span>
+                          <span className="list-item-title">{booking.name}</span>
                           <span className="status-badge" data-status={booking.status}>
                             {booking.status === 'confirmed' ? 'Bestätigt' : booking.status === 'cancelled' ? 'Storniert' : 'Offen'}
                           </span>
                         </div>
-                        <div className="list-item-subtitle">{booking.name}</div>
-                        <div className="list-item-preview">
+                        <div className="list-item-subtitle" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span>{booking.email}</span>
+                          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                            Gebucht am: {new Date(booking.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        {booking.message && (
+                          <div className="list-item-preview" style={{ marginTop: '0.25rem' }}>
+                            <span style={{ fontWeight: 500 }}>Nachricht: </span>
+                            {booking.message.substring(0, 50)}{booking.message.length > 50 ? '...' : ''}
+                          </div>
+                        )}
+                        <div className="list-item-preview" style={{ marginTop: '0.25rem', color: 'var(--color-primary)' }}>
                           <Clock size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                          {formatFutureDate(booking.date)}
+                          Termin: {formatFutureDate(booking.date)}
                         </div>
                       </div>
                     </motion.div>
@@ -491,6 +502,7 @@ const AdminDashboard = () => {
                     <span className="detail-label">Kunde</span>
                     <p>{selectedBooking.name}</p>
                     <p className="text-sm text-gray-500">{selectedBooking.email}</p>
+                    <p className="text-xs text-gray-400 mt-1">Gebucht am: {new Date(selectedBooking.createdAt).toLocaleString('de-DE')}</p>
                   </div>
                 </div>
                 <div className="detail-row">

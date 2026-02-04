@@ -12,6 +12,7 @@ import {
     getBlockedPeriods, addBlockedPeriod, deleteBlockedPeriod,
     reorderAppointmentTypes
 } from '../../lib/bookingClient';
+import { supabase } from '../../lib/supabaseClient';
 
 const TerminToolSettings = ({ embedded = false }) => {
     const [activeTab, setActiveTab] = useState('types'); // types, availability, blocked
@@ -86,31 +87,45 @@ const TerminToolSettings = ({ embedded = false }) => {
     const handleSaveType = async (e) => {
         e.preventDefault();
         try {
+            // Get Auth Token
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+            const token = session.access_token;
+
+            let savedType;
             if (editingType) {
-                await updateAppointmentType(editingType.id, typeForm);
+                savedType = await updateAppointmentType(editingType.id, typeForm, token);
                 setSuccessMsg("Terminart aktualisiert.");
+                // Update local state immediately
+                setAppointmentTypes(prev => prev.map(t => t.id === savedType.id ? savedType : t));
             } else {
-                await createAppointmentType(typeForm);
+                savedType = await createAppointmentType(typeForm, token);
                 setSuccessMsg("Neue Terminart erstellt.");
+                // Add to local state
+                setAppointmentTypes(prev => [...prev, savedType]);
             }
             setIsTypeModalOpen(false);
-            loadData();
-            setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            setError("Fehler beim Speichern.");
-            setTimeout(() => setError(null), 3000);
+            console.error("Save Error:", err);
+            setError(err.message || "Fehler beim Speichern - Bitte prüfen Sie die Eingaben.");
+            setTimeout(() => setError(null), 5000);
         }
     };
 
     const handleDeleteType = async (id) => {
         if (!window.confirm("Möchten Sie diese Terminart wirklich löschen?")) return;
         try {
-            await deleteAppointmentType(id);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+
+            await deleteAppointmentType(id, session.access_token);
             setSuccessMsg("Terminart gelöscht.");
-            loadData();
+            loadData(); // Reload to be safe
             setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            setError("Fehler beim Löschen.");
+            console.error("Delete Error:", err);
+            setError(err.message || "Fehler beim Löschen.");
+            setTimeout(() => setError(null), 5000);
         }
     };
 
@@ -128,10 +143,15 @@ const TerminToolSettings = ({ embedded = false }) => {
         setAppointmentTypes(newTypes); // Optimistic UI
         setReordering(true);
         try {
-            await reorderAppointmentTypes(newTypes.map(t => t.id));
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+
+            await reorderAppointmentTypes(newTypes.map(t => t.id), session.access_token);
         } catch (err) {
+            console.error("Reorder Error:", err);
             loadData(); // Revert on error
-            setError("Fehler beim Speichern der Sortierung.");
+            setError(err.message || "Fehler beim Speichern der Sortierung.");
+            setTimeout(() => setError(null), 5000);
         } finally {
             setReordering(false);
         }
@@ -522,16 +542,19 @@ const TerminToolSettings = ({ embedded = false }) => {
                                             <input
                                                 type="number"
                                                 required
+                                                min="1"
                                                 value={typeForm.duration_minutes}
-                                                onChange={e => setTypeForm({ ...typeForm, duration_minutes: parseInt(e.target.value) })}
+                                                onChange={e => setTypeForm({ ...typeForm, duration_minutes: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                             />
                                         </div>
                                         <div className="form-group">
                                             <label>Preis (Optional)</label>
                                             <input
                                                 type="number"
+                                                min="0"
+                                                step="0.01"
                                                 value={typeForm.price}
-                                                onChange={e => setTypeForm({ ...typeForm, price: parseFloat(e.target.value) })}
+                                                onChange={e => setTypeForm({ ...typeForm, price: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                                             />
                                         </div>
                                     </div>

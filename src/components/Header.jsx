@@ -116,13 +116,13 @@ const Header = () => {
         }
 
         .logo-img {
-          height: 100px;
+          height: 120px;
           width: auto;
           transition: height var(--transition-normal);
         }
         
         .header.scrolled .logo-img {
-          height: 70px;
+          height: 85px;
         }
 
         .nav-links {
@@ -228,7 +228,7 @@ const Header = () => {
           }
           
           .logo-img {
-             height: 60px;
+             height: 75px;
           }
         }
       `}</style>

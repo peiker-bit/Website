@@ -292,14 +292,25 @@ const BookingList = () => {
 
                                     <div className="booking-info">
                                         <div className="booking-header">
-                                            <h3>{booking.service || 'Allgemeine Beratung'}</h3>
+                                            <h3>{booking.name}</h3>
                                             {getStatusBadge(booking.status)}
                                         </div>
-                                        <div className="client-name">
-                                            <User size={14} /> {booking.name}
+                                        <div className="client-name" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+                                            {booking.service || 'Termin'}
                                         </div>
                                         <div className="client-contact">
                                             <Mail size={14} /> {booking.email}
+                                        </div>
+                                        {booking.message && (
+                                            <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                                                <span style={{ fontWeight: 600, flexShrink: 0 }}>Nachricht:</span>
+                                                <span style={{ fontStyle: 'italic' }}>
+                                                    {booking.message.substring(0, 60)}{booking.message.length > 60 ? '...' : ''}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
+                                            Gebucht am: {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unbekannt'}
                                         </div>
                                     </div>
 
@@ -372,6 +383,9 @@ const BookingList = () => {
                                         <div className="detail-label"><Mail size={18} /> E-Mail</div>
                                         <div className="detail-value">
                                             <a href={`mailto:${selectedBooking.email}`}>{selectedBooking.email}</a>
+                                        </div>
+                                        <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                                            Gebucht am: {selectedBooking.createdAt ? new Date(selectedBooking.createdAt).toLocaleString('de-DE') : '-'}
                                         </div>
                                     </div>
                                     <div className="detail-item">

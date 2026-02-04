@@ -134,7 +134,7 @@ const Payroll = () => {
                         </p>
                         <div className="hero-actions fade-in" style={{ animationDelay: '0.6s' }}>
                             <a href="https://termine.peiker-steuer.de" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-                                Termin vereinbaren <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
+                                Termin online vereinbaren <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
                             </a>
                         </div>
                     </div>

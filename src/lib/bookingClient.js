@@ -44,6 +44,9 @@ export const subscribeToBookings = (callback) => {
 
         if (error) {
             console.error("Error fetching bookings:", error);
+            if (error.code === '42501' || error.message?.includes('policy')) {
+                console.warn("⚠️ Permission denied: RLS policy might be missing on 'bookings' table for public/anon access.");
+            }
             return;
         }
         callback((data || []).map(mapBooking));
@@ -161,67 +164,47 @@ export const getAppointmentTypes = async () => {
     return data;
 };
 
-export const createAppointmentType = async (typeData) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
+// Helper for API calls
+const callAdminApi = async (action, payload, token) => {
+    // Determine the API URL based on environment (local vs production)
+    const TERMINTOOL_API_URL = import.meta.env.VITE_TERMINTOOL_API_URL || 'http://localhost:3000';
+    const url = `${TERMINTOOL_API_URL}/api/admin/appointment-types`;
 
-    // Get max sort order to append to end
-    const { data: maxData } = await bookingSupabase
-        .from('availability_options')
-        .select('sort_order')
-        .order('sort_order', { ascending: false })
-        .limit(1)
-        .single();
-
-    const nextOrder = (maxData?.sort_order || 0) + 1;
-
-    const { data, error } = await bookingSupabase
-        .from('availability_options')
-        .insert([{ ...typeData, sort_order: nextOrder }])
-        .select();
-
-    if (error) throw error;
-    return data[0];
-};
-
-export const updateAppointmentType = async (id, updates) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
-
-    const { data, error } = await bookingSupabase
-        .from('availability_options')
-        .update(updates)
-        .eq('id', id)
-        .select();
-
-    if (error) {
-        console.error("Error updating appointment type:", error);
-        throw error;
+    if (!token) {
+        throw new Error("Authentication token required for this action");
     }
-    return data[0];
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ action, ...payload })
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) {
+        console.error("API Error Details:", result);
+        throw new Error(result.error || `API Error: ${response.status} ${response.statusText}`);
+    }
+    return result.data;
 };
 
-export const reorderAppointmentTypes = async (orderedIds) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
-
-    // Updates to perform
-    const updates = orderedIds.map((id, index) =>
-        bookingSupabase
-            .from('availability_options')
-            .update({ sort_order: index })
-            .eq('id', id)
-    );
-
-    await Promise.all(updates);
+export const createAppointmentType = async (typeData, token) => {
+    return await callAdminApi('create', { data: typeData }, token);
 };
 
-export const deleteAppointmentType = async (id) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
+export const updateAppointmentType = async (id, updates, token) => {
+    return await callAdminApi('update', { id, data: updates }, token);
+};
 
-    const { error } = await bookingSupabase
-        .from('availability_options')
-        .delete()
-        .eq('id', id);
+export const reorderAppointmentTypes = async (orderedIds, token) => {
+    return await callAdminApi('reorder', { orderedIds }, token);
+};
 
-    if (error) throw error;
+export const deleteAppointmentType = async (id, token) => {
+    return await callAdminApi('delete', { id }, token);
 };
 
 // 2. Global Settings (Buffer, Days)

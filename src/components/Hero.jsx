@@ -55,7 +55,7 @@ const Hero = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            Termin vereinbaren <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+                            Termin online vereinbaren <ArrowRight size={18} style={{ marginLeft: '8px' }} />
                         </motion.a>
                         <motion.a
                             href="#services"
@@ -196,7 +196,7 @@ const Hero = () => {
             <style>{`
         .hero {
           position: relative;
-          padding: 8rem 0 6rem;
+          padding: 12rem 0 6rem;
           overflow: hidden;
           min-height: 90vh;
           display: flex;
