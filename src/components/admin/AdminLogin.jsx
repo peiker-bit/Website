@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Loader2, AlertCircle, Shield } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
+import { bookingSupabase } from '../../lib/bookingClient';
 
 import adminLogo from '../../assets/admin-logo.png';
 
@@ -42,6 +43,7 @@ const AdminLogin = () => {
     }
 
     try {
+      // 1. Authenticate with MAIN Supabase (Website Content)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
@@ -59,6 +61,29 @@ const AdminLogin = () => {
         setStatus('error');
         console.error('Login error:', error);
         return;
+      }
+
+      // 2. Authenticate with BOOKING Supabase (Appointment System)
+      if (bookingSupabase) {
+        try {
+          const { error: bookingError } = await bookingSupabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+          if (bookingError) {
+            console.warn("Could not log in to Booking System:", bookingError);
+            // We don't block main login, but features might be limited
+          } else {
+            console.log("✅ Successfully logged in to Booking System");
+          }
+        } catch (err) {
+          console.error("Booking auth exception:", err);
+        }
+      }
+
+      if (data.session) {
+        // Successfully logged in
+        navigate('/admin');
       }
 
       if (data.session) {
