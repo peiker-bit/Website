@@ -1,18 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
 
-// Configuration for the SECONDARY Supabase project (Booking Tool)
-const bookingSupabaseUrl = import.meta.env.VITE_BOOKING_SUPABASE_URL;
-const bookingSupabaseKey = import.meta.env.VITE_BOOKING_SUPABASE_ANON_KEY;
+// Use the main supabase client which shares the auth state
+// This allows admin operations (update/delete) to work because they are authenticated
+const bookingSupabase = supabase;
 const COLLECTION_NAME = 'bookings'; // Change this if table name differs
-
-// Create a separate client instance
-let bookingSupabase = null;
-
-if (bookingSupabaseUrl && bookingSupabaseKey) {
-    bookingSupabase = createClient(bookingSupabaseUrl, bookingSupabaseKey);
-} else {
-    console.warn("⚠️ Booking Supabase credentials missing. Please set VITE_BOOKING_SUPABASE_URL and VITE_BOOKING_SUPABASE_ANON_KEY.");
-}
 
 export const subscribeToBookings = (callback) => {
     if (!bookingSupabase) {
