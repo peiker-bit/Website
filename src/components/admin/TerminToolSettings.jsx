@@ -157,14 +157,26 @@ const TerminToolSettings = ({ embedded = false }) => {
         }
     };
 
+    const [saving, setSaving] = useState(false);
+
     // --- Handlers for Settings ---
     const handleSaveSettings = async () => {
+        setSaving(true);
         try {
-            await updateBookingSettings(settings);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+
+            await updateBookingSettings(settings, session.access_token);
             setSuccessMsg("Einstellungen erfolgreich gespeichert.");
+
+            // Clean up messages after 3 seconds
             setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            setError("Fehler beim Speichern der Einstellungen.");
+            console.error("Save Settings Error:", err);
+            setError("Fehler beim Speichern der Einstellungen: " + err.message);
+            setTimeout(() => setError(null), 5000);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -470,9 +482,25 @@ const TerminToolSettings = ({ embedded = false }) => {
                             )}
                         </div>
 
-                        <div className="actions-footer">
-                            <button className="btn-primary large" onClick={handleSaveSettings}>
-                                <Save size={18} /> Einstellungen speichern
+                        <div className="actions-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '1rem' }}>
+                            {successMsg && <span className="text-green-600 font-medium flex items-center gap-1"><CheckCircle size={16} /> Gespeichert!</span>}
+                            {error && <span className="text-red-600 font-medium flex items-center gap-1"><AlertCircle size={16} /> Fehler!</span>}
+
+                            <button
+                                className="btn-primary large"
+                                onClick={handleSaveSettings}
+                                disabled={saving}
+                                style={{ opacity: saving ? 0.7 : 1, cursor: saving ? 'wait' : 'pointer' }}
+                            >
+                                {saving ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" /> Speichere...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={18} /> Einstellungen speichern
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

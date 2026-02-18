@@ -223,28 +223,30 @@ export const getBookingSettings = async () => {
     return data;
 };
 
-export const updateBookingSettings = async (settings) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
+export const updateBookingSettings = async (settings, token) => {
+    // Use the same API client pattern as appointment types
+    const TERMINTOOL_API_URL = import.meta.env.VITE_TERMINTOOL_API_URL || 'http://localhost:3000';
+    const url = `${TERMINTOOL_API_URL}/api/settings`;
 
-    // Check if exists first (or we can use upsert if ID is known, but usually we just row 1)
-    const current = await getBookingSettings();
-
-    let result;
-    if (current) {
-        result = await bookingSupabase
-            .from('booking_settings')
-            .update(settings)
-            .eq('id', current.id)
-            .select();
-    } else {
-        result = await bookingSupabase
-            .from('booking_settings')
-            .insert([settings])
-            .select();
+    if (!token) {
+        throw new Error("Authentication token required for this action");
     }
 
-    if (result.error) throw result.error;
-    return result.data[0];
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ settings })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
+    }
+
+    return await response.json();
 };
 
 // 3. Blocked Periods (Urlaub)

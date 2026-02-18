@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS booking_settings (
   available_days TEXT[] DEFAULT '{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"}', -- Array of active days
   min_booking_notice_hours INTEGER DEFAULT 24, -- How much in advance must one book
   max_booking_future_days INTEGER DEFAULT 60, -- How far in future one can book
+  business_hours JSONB DEFAULT '{}'::jsonb, -- Business hours configuration
+  slot_interval_minutes INTEGER DEFAULT 15, -- Default slot interval
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
