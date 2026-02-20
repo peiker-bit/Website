@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle, Users, X, Phone, User, MessageSquare } from 'lucide-react';
+import { Mail, MailOpen, TrendingUp, Clock, ArrowRight, Loader2, Calendar, CheckCircle, Users, X, Phone, User, MessageSquare, UserPlus } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { subscribeToBookings, updateBookingStatus, cancelBooking } from '../../lib/bookingClient';
+import { getFragebogenStats, isFragebogenEnabled } from '../../lib/fragebogenClient';
 import AdminLayout from './AdminLayout';
 
 const AdminDashboard = () => {
@@ -13,7 +14,9 @@ const AdminDashboard = () => {
     todayMessages: 0,
     totalBookings: 0,
     upcomingBookings: 0,
-    todayBookings: 0
+    todayBookings: 0,
+    neumandentenTotal: 0,
+    neumandentenNew: 0
   });
   const [recentMessages, setRecentMessages] = useState([]);
   const [recentBookings, setRecentBookings] = useState([]);
@@ -45,6 +48,23 @@ const AdminDashboard = () => {
       msgSubscription.unsubscribe();
       bookingUnsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    if (!isFragebogenEnabled) return;
+    const fetchFragebogen = async () => {
+      try {
+        const fbStats = await getFragebogenStats();
+        setStats(prev => ({
+          ...prev,
+          neumandentenTotal: fbStats.total || 0,
+          neumandentenNew: fbStats.new || 0
+        }));
+      } catch (e) {
+        console.warn('Fragebogen stats unavailable:', e.message);
+      }
+    };
+    fetchFragebogen();
   }, []);
 
   const updateBookingStats = (bookings) => {
@@ -231,7 +251,16 @@ const AdminDashboard = () => {
       icon: <Clock size={24} />,
       gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
       shadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)'
-    }
+    },
+    ...(isFragebogenEnabled ? [{
+      label: 'Neumandanten',
+      value: stats.neumandentenTotal,
+      subValue: `${stats.neumandentenNew} neu`,
+      icon: <UserPlus size={24} />,
+      gradient: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+      shadow: '0 10px 20px -5px rgba(236, 72, 153, 0.4)',
+      link: '/admin/neumandanten'
+    }] : [])
   ];
 
   if (loading) {

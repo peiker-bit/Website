@@ -21,6 +21,8 @@ import BookingList from './components/admin/BookingList';
 import Settings from './components/admin/Settings';
 import TerminToolSettings from './components/admin/TerminToolSettings';
 import ProtectedRoute from './components/admin/ProtectedRoute';
+import NeumandentenList from './components/admin/NeumandentenList';
+import NeumandentenDetail from './components/admin/NeumandentenDetail';
 
 import CookieBanner from './components/CookieBanner';
 
@@ -129,6 +131,16 @@ function App() {
           <Route path="/admin/settings" element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/neumandanten" element={
+            <ProtectedRoute>
+              <NeumandentenList />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/neumandanten/:id" element={
+            <ProtectedRoute>
+              <NeumandentenDetail />
             </ProtectedRoute>
           } />
         </Routes>

@@ -67,27 +67,31 @@ export const subscribeToBookings = (callback) => {
     };
 };
 
-export const deleteBooking = async (id) => {
-    if (!bookingSupabase) {
-        console.error('❌ Booking Supabase client not initialized');
-        throw new Error('Booking database connection not configured');
+export const deleteBooking = async (id, token) => {
+    const TERMINTOOL_API_URL = import.meta.env.VITE_TERMINTOOL_API_URL || 'http://localhost:3000';
+    const FUNCTION_URL = `${TERMINTOOL_API_URL}/api/admin/delete-booking`;
+
+    if (!token) {
+        throw new Error("Authentication token required to delete booking");
     }
 
-    console.log('🗑️ Deleting booking:', id);
+    console.log('🗑️ Deleting booking via API:', id);
 
-    const { data, error } = await bookingSupabase
-        .from(COLLECTION_NAME)
-        .delete()
-        .eq('id', id)
-        .select();
+    const response = await fetch(FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ bookingId: id })
+    });
 
-    if (error) {
-        console.error('❌ Error deleting booking:', error);
-        throw error;
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
     }
 
-    console.log('✅ Booking deleted successfully:', data);
-    return data;
+    return await response.json();
 };
 
 export const updateBookingStatus = async (id, status, reason = null) => {

@@ -78,7 +78,10 @@ const BookingList = () => {
 
     const handleDelete = async (bookingId) => {
         try {
-            await deleteBooking(bookingId);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+
+            await deleteBooking(bookingId, session.access_token);
             // Optimistic update / Immediate removal from UI
             setBookings(prev => prev.filter(b => b.id !== bookingId));
             setDeleteConfirm(null);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogOut, Mail, Settings, LayoutDashboard, User, Menu, X, Calendar } from 'lucide-react';
+import { LogOut, Mail, Settings, LayoutDashboard, User, Menu, X, Calendar, UserPlus } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 
 const AdminLayout = ({ children }) => {
@@ -29,9 +29,10 @@ const AdminLayout = ({ children }) => {
   };
 
   const navigationItems = [
-    { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
+    { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Dashboard', exact: true },
     { path: '/admin/messages', icon: <Mail size={20} />, label: 'Nachrichten' },
     { path: '/admin/bookings', icon: <Calendar size={20} />, label: 'Buchungen' },
+    { path: '/admin/neumandanten', icon: <UserPlus size={20} />, label: 'Neumandanten' },
     { path: '/admin/settings', icon: <Settings size={20} />, label: 'Einstellungen' },
   ];
 
@@ -56,7 +57,7 @@ const AdminLayout = ({ children }) => {
             <Link
               key={item.path}
               to={item.path}
-              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+              className={`nav-item ${(item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path)) ? 'active' : ''}`}
               onClick={() => setMobileMenuOpen(false)}
             >
               {item.icon}
