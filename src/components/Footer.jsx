@@ -23,6 +23,17 @@ const Footer = () => {
                         <Link to="/impressum">Impressum</Link>
                         <Link to="/datenschutz">Datenschutz</Link>
                         <Link to="/agb">AGB</Link>
+                        <a
+                            href="https://neumandant.peiker-steuer.de"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ marginTop: '1rem', lineHeight: '1.3' }}
+                        >
+                            Stammdatenformular für Neumandanten
+                            <span style={{ display: 'block', fontSize: '0.8em', opacity: 0.7, marginTop: '2px' }}>
+                                (nur nach vorheriger Mandatszusage)
+                            </span>
+                        </a>
                     </div>
 
                     <div className="footer-links">

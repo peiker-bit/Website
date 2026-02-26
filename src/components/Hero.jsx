@@ -48,7 +48,7 @@ const Hero = () => {
                         className="hero-actions"
                     >
                         <motion.a
-                            href="https://termine.peiker-steuer.de"
+                            href="https://neumandant.peiker-steuer.de"
                             className="btn btn-primary"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

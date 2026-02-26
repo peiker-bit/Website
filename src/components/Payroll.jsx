@@ -133,7 +133,7 @@ const Payroll = () => {
                             Korrekte Abrechnungen, digitaler Datenfluss und persönliche Betreuung für kleine und mittelständische Unternehmen.
                         </p>
                         <div className="hero-actions fade-in" style={{ animationDelay: '0.6s' }}>
-                            <a href="https://termine.peiker-steuer.de" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                            <a href="https://neumandant.peiker-steuer.de" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
                                 Termin online vereinbaren <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
                             </a>
                         </div>
@@ -311,7 +311,7 @@ const Payroll = () => {
                 <div className="container">
                     <h2>Bereit für eine entspannte Lohnbuchhaltung?</h2>
                     <p>Lassen Sie uns unverbindlich über Ihre Anforderungen sprechen.</p>
-                    <a href="https://termine.peiker-steuer.de" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">
+                    <a href="https://neumandant.peiker-steuer.de" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">
                         Jetzt Online-Termin vereinbaren
                     </a>
                 </div>
