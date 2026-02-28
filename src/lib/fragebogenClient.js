@@ -11,33 +11,12 @@
  * - This is the same pattern used by bookingClient.js for the booking DB
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
 
-const FB_URL = import.meta.env.VITE_FRAGEBOGEN_SUPABASE_URL;
-const FB_KEY = import.meta.env.VITE_FRAGEBOGEN_SUPABASE_SERVICE_KEY
-    || import.meta.env.VITE_FRAGEBOGEN_SUPABASE_ANON_KEY;
-
-// ─── Fail-fast check ─────────────────────────────────────────────
-export const isFragebogenEnabled = !!(FB_URL && FB_KEY);
-
-if (!isFragebogenEnabled) {
-    console.warn(
-        '⚠️ Fragebogen Neumandant: ENV-Variablen fehlen. Feature deaktiviert.'
-    );
-}
-
-// ─── Supabase Client ─────────────────────────────────────────────
-const fragebogenSupabase = isFragebogenEnabled
-    ? createClient(FB_URL, FB_KEY)
-    : null;
-
-// ─── Helpers ─────────────────────────────────────────────────────
+export const isFragebogenEnabled = true;
 
 function getClient() {
-    if (!fragebogenSupabase) {
-        throw new Error('Fragebogen-Feature ist nicht konfiguriert. Bitte ENV-Variablen prüfen.');
-    }
-    return fragebogenSupabase;
+    return supabase;
 }
 
 // ─── Public API ──────────────────────────────────────────────────
