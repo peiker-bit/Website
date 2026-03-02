@@ -169,10 +169,10 @@ export const getAppointmentTypes = async () => {
 };
 
 // Helper for API calls
-const callAdminApi = async (action, payload, token) => {
+const callAdminApi = async (endpoint, action, payload, token) => {
     // Determine the API URL based on environment (local vs production)
     const TERMINTOOL_API_URL = import.meta.env.VITE_TERMINTOOL_API_URL || 'http://localhost:3000';
-    const url = `${TERMINTOOL_API_URL}/api/admin/appointment-types`;
+    const url = `${TERMINTOOL_API_URL}/api/admin/${endpoint}`;
 
     if (!token) {
         throw new Error("Authentication token required for this action");
@@ -196,19 +196,19 @@ const callAdminApi = async (action, payload, token) => {
 };
 
 export const createAppointmentType = async (typeData, token) => {
-    return await callAdminApi('create', { data: typeData }, token);
+    return await callAdminApi('appointment-types', 'create', { data: typeData }, token);
 };
 
 export const updateAppointmentType = async (id, updates, token) => {
-    return await callAdminApi('update', { id, data: updates }, token);
+    return await callAdminApi('appointment-types', 'update', { id, data: updates }, token);
 };
 
 export const reorderAppointmentTypes = async (orderedIds, token) => {
-    return await callAdminApi('reorder', { orderedIds }, token);
+    return await callAdminApi('appointment-types', 'reorder', { orderedIds }, token);
 };
 
 export const deleteAppointmentType = async (id, token) => {
-    return await callAdminApi('delete', { id }, token);
+    return await callAdminApi('appointment-types', 'delete', { id }, token);
 };
 
 // 2. Global Settings (Buffer, Days)
@@ -269,25 +269,10 @@ export const getBlockedPeriods = async () => {
     return data;
 };
 
-export const addBlockedPeriod = async (periodData) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
-
-    const { data, error } = await bookingSupabase
-        .from('blocked_periods')
-        .insert([periodData])
-        .select();
-
-    if (error) throw error;
-    return data[0];
+export const addBlockedPeriod = async (periodData, token) => {
+    return await callAdminApi('blocked-periods', 'create', { data: periodData }, token);
 };
 
-export const deleteBlockedPeriod = async (id) => {
-    if (!bookingSupabase) throw new Error("Booking connection not configured");
-
-    const { error } = await bookingSupabase
-        .from('blocked_periods')
-        .delete()
-        .eq('id', id);
-
-    if (error) throw error;
+export const deleteBlockedPeriod = async (id, token) => {
+    return await callAdminApi('blocked-periods', 'delete', { id }, token);
 };

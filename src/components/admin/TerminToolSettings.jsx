@@ -210,24 +210,30 @@ const TerminToolSettings = ({ embedded = false }) => {
     const handleSaveBlock = async (e) => {
         e.preventDefault();
         try {
-            await addBlockedPeriod(blockForm);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+
+            await addBlockedPeriod(blockForm, session.access_token);
             setSuccessMsg("Abwesenheit eingetragen.");
             setIsBlockModalOpen(false);
             setBlockForm({ start_date: '', end_date: '', reason: '' });
             loadData();
             setTimeout(() => setSuccessMsg(null), 3000);
         } catch (err) {
-            setError("Fehler beim Speichern.");
+            setError(err.message || "Fehler beim Speichern.");
         }
     };
 
     const handleDeleteBlock = async (id) => {
         if (!window.confirm("Eintrag löschen?")) return;
         try {
-            await deleteBlockedPeriod(id);
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error("Nicht authentifiziert");
+
+            await deleteBlockedPeriod(id, session.access_token);
             loadData();
         } catch (err) {
-            setError("Fehler beim Löschen.");
+            setError(err.message || "Fehler beim Löschen.");
         }
     };
 
