@@ -24,6 +24,11 @@ import ProtectedRoute from './components/admin/ProtectedRoute';
 import NeumandentenList from './components/admin/NeumandentenList';
 import NeumandentenDetail from './components/admin/NeumandentenDetail';
 
+import AdminJobsList from './components/admin/AdminJobsList';
+import AdminJobForm from './components/admin/AdminJobForm';
+import Careers from './components/Careers';
+import JobDetail from './components/JobDetail';
+
 import CookieBanner from './components/CookieBanner';
 
 function App() {
@@ -110,6 +115,20 @@ function App() {
               <Footer />
             </>
           } />
+          <Route path="/karriere" element={
+            <>
+              <Header />
+              <main><Careers /></main>
+              <Footer />
+            </>
+          } />
+          <Route path="/karriere/:slug" element={
+            <>
+              <Header />
+              <main><JobDetail /></main>
+              <Footer />
+            </>
+          } />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
@@ -141,6 +160,16 @@ function App() {
           <Route path="/admin/neumandanten/:id" element={
             <ProtectedRoute>
               <NeumandentenDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/jobs" element={
+            <ProtectedRoute>
+              <AdminJobsList />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/jobs/:id" element={
+            <ProtectedRoute>
+              <AdminJobForm />
             </ProtectedRoute>
           } />
         </Routes>
